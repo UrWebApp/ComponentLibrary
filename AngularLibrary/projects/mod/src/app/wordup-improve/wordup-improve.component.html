@@ -1,4 +1,7 @@
-<div class="box" style="display:flex; align-items: center; justify-content: center;flex-direction: column;     padding-bottom: 3rem;" (window:resize)="onResize($event)">
+<div class="box"
+  style="display:flex; align-items: center; justify-content: center;flex-direction: column;     padding-bottom: 3rem;"
+  (window:resize)="onResize($event)">
+
   <div class="toolBox">
     <button *ngIf="displayMode !== DisplayMode.Answer"
       (click)="displayMode = DisplayMode.Answer;sentenceAnswerDisplay = true;">
@@ -9,37 +12,60 @@
       <button (click)="answerScoreReset(false)">不會</button>
     </ng-container>
   </div>
+
   <p *ngIf="SUSS > 0">連續 {{SUSS}} 答題成功!!</p>
   <div style="padding: 1.5rem;">
     <div *ngIf="card">
-      <p [innerHtml]="sentence?.en | highlight:card?.en:'full'"></p>
-      <ng-container *ngIf="displayMode === DisplayMode.Answer">
-        <p>
-          <ng-container *ngIf="sentenceAnswerDisplay">
-            <p [innerHtml]="sentence?.cn"></p>
-          </ng-container>
-        </p>
-        <button *ngIf="sentenceAnswerDisplay" (click)="drawSentence()">更多例句</button>
-        <button *ngIf="!sentenceAnswerDisplay" (click)="sentenceAnswerDisplay = true">例句答案</button>
-        <hr>
-        <p>{{card?.en}}</p>
-        <p>{{card?.cn}}</p>
-        <hr>
-        <div>
-          <input type="text" [(ngModel)]="searchWord"/>
-          <button (click)="searchWordMark()">搜尋單字註記不會</button>
-          <p>{{searchWordDisplay}}</p>
-          <p>{{searchWordExplain}}</p>
-        </div>
+      <ng-container *ngIf="drawCardMode === 'EnToCn' else cnToEn">
+
+        <p [innerHtml]="sentence?.en | highlight:card?.en:'full'"></p>
+        <ng-container *ngIf="displayMode === DisplayMode.Answer">
+          <p>
+            <ng-container *ngIf="sentenceAnswerDisplay">
+              <p [innerHtml]="sentence?.cn"></p>
+            </ng-container>
+          </p>
+          <button *ngIf="sentenceAnswerDisplay" (click)="drawSentence()">更多例句</button>
+          <button *ngIf="!sentenceAnswerDisplay" (click)="sentenceAnswerDisplay = true">例句答案</button>
+          <hr>
+          <p>{{card?.en}}</p>
+          <p>{{card?.cn}}</p>
+          <hr>
+          <div>
+            <input type="text" [(ngModel)]="searchWord" />
+            <button (click)="searchWordMark()">搜尋單字註記不會</button>
+            <p>{{searchWordDisplay}}</p>
+            <p>{{searchWordExplain}}</p>
+          </div>
+        </ng-container>
+
       </ng-container>
+
+      <ng-template #cnToEn>
+
+        <p>{{card?.cn}}</p>
+        <ng-container *ngIf="displayMode === DisplayMode.Answer">
+          <button (click)="openGoogleTranslate()">Google翻譯看單字使用頻率</button>
+          <p>{{card?.en}}</p>
+        </ng-container>
+
+      </ng-template>
     </div>
   </div>
+
   <div style="max-width: 50vw;">
     <hr>
-    <canvas id="canvas">{{chart}}</canvas>
     <div>
+      <button class="unobviousBtn" (click)="changeDrawCardMode('EnToCn')" *ngIf="drawCardMode === 'CnToEn'">英翻中</button>
+      <button class="unobviousBtn" (click)="changeDrawCardMode('CnToEn')" *ngIf="drawCardMode === 'EnToCn'">中翻英</button>
       <button class="unobviousBtn" (click)="resetAnswerScore()">清空紀錄</button>
       <button class="unobviousBtn" (click)="setTheme()">切換黑白模式</button>
+      <button class="unobviousBtn" (click)="clickImExport()">匯出匯入</button>
     </div>
+    <div *ngIf="isExportAnswerScore" style="display: flex;flex-direction: column;">
+      <textarea [(ngModel)]="answerScoreDisplay"></textarea>
+      <button class="unobviousBtn" (click)="importAnswerScore()">匯入</button>
+    </div>
+    <canvas id="canvas">{{chart}}</canvas>
   </div>
 </div>
