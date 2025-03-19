@@ -126,6 +126,8 @@ export class WordupImproveComponent {
     this.lastdownloadLogTime = localStorage.getItem('lastdownloadLogTime') ?? '';
 
     this.errorModeDisplay.notReviewdCount = 0;
+
+    console.log('this.config',this.config)
   }
 
   /**
@@ -220,6 +222,7 @@ export class WordupImproveComponent {
           this.answerScore = JSON.parse(
             localStorage.getItem('answerScore') ?? '[]'
           );
+          console.log('this.answerScore',this.answerScore)
           this.configInit();
           this.editedCardsInit();
         })
@@ -347,8 +350,6 @@ export class WordupImproveComponent {
       this.errorModeDisplay.positive = preprocessCards.positive.length;
 
       // 先背最多扣分的，如果都跑進一小時內，沒了就接續最近七天的，七天的都進一小時內，換最近三十天的跟新的抽
-
-      console.log(preprocessCards.maxNegativeScore.length)
 
       if (this.errorModeDisplay.notReviewdCount <= 5) {
         this.errorModeDisplay.winningArray = 'notReviewd';
@@ -586,6 +587,8 @@ export class WordupImproveComponent {
 
     this.openIframe('https://www.google.com/search?sca_esv=1ddba70af590f790&sca_upv=1&igu=1&q=', '&udm=2&fbs=AEQNm0DVrIRjdA3gRKfJJ-deMT8ZtYOjoIt1NWOMRkEKym4u5PkAZgxJOmIgPx6WieMhF6q1Hq7W6nME2Vp0eHuijF3ZElaTgD0zbj1gkQrti2r6HpgEQJ__FI2P2zVbzOTQnx-xQGuWfPA7_LjHL8X54xCjPigLtLX638JLYGhCvRlpvvGBo-fNpc7q_rU8dgffCadMYeMgxPqmupqDpgcFpVxKo2EBMA&sa=X&ved=2ahUKEwj91ZGlkuCIAxU4cPUHHd29CMAQtKgLegQIEhAB&biw=1920&bih=919&dpr=1');
     // ,' definition'
+
+    console.log('this.cards',this.cards)
   }
 
   /**
@@ -1369,6 +1372,7 @@ export class WordupImproveComponent {
     this.editedCards.card = new Card();
     this.editedCards.notEditMode = true;
     this.refreshCnEdited();
+    console.log('this.editedCards',this.editedCards)
   }
 
   /**
