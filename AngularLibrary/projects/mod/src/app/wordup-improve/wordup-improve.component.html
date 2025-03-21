@@ -2,7 +2,8 @@
 <button class="quickBtn CB"
   (click)="openBlankUrl('https://dictionary.cambridge.org/dictionary/english-chinese-traditional/')">劍</button>
 <button class="quickBtn EP" (click)="copySelectedText(config.prompt)">解</button>
-<button class="quickBtn NC" (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;">新</button>
+<button class="quickBtn NC"
+  (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;">新</button>
 <button class="quickBtn BT" (click)="commonService.goToAnchor(backToTopDOM)">🔝</button>
 
 <!-- <mod-chinese-model></mod-chinese-model> -->
@@ -31,7 +32,18 @@
   <div class="cardBox">
     <div *ngIf="card">
       <span class="subInfo userCantSelect">
-        Score：{{ card.score }} ({{maxNegativeScoreIndex + 1}}),
+        Score：{{ card.score }} (<span [ngSwitch]="errorModeDisplay.winningArray">
+          <ng-container *ngSwitchCase="'recent'">最近的:({{errorModeDisplay.recent}}),</ng-container>
+          <ng-container *ngSwitchCase="'remain'">remain:({{errorModeDisplay.remain}}),</ng-container>
+          <ng-container *ngSwitchCase="'notReviewed'">未審閱:({{errorModeDisplay.notReviewed}}),</ng-container>
+          <ng-container *ngSwitchCase="'maxNegativeScore'">最大負分:({{errorModeDisplay.maxNegativeScore +
+            1}}),</ng-container>
+          <ng-container *ngSwitchCase="'positive'">positive:({{errorModeDisplay.positive}})</ng-container>
+          <ng-container *ngSwitchCase="'within1d'">within1d:({{errorModeDisplay.within1d}})</ng-container>
+          <ng-container *ngSwitchCase="'within2d'">within2d:({{errorModeDisplay.within2d}})</ng-container>
+          <ng-container *ngSwitchCase="'within7d'">within7d:({{errorModeDisplay.within7d}})</ng-container>
+          <ng-container *ngSwitchCase="'within14d'">within14d:({{errorModeDisplay.within14d}})</ng-container>
+        </span>),
         <span>
           {{ card.updateTime.days }} d / {{ card.updateTime.hours }} h /{{ card.updateTime.minutes }} m
         </span>
@@ -99,7 +111,7 @@
       </ng-container>
 
       <hr />
-      <p (click)="trackingInfoSwitch = !trackingInfoSwitch">
+      <p (click)="trackingInfoSwitch = !trackingInfoSwitch" style="cursor: pointer;">
         <ng-container *ngIf="!trackingInfoSwitch">⬇ ⬇ trackingInfo ⬇ ⬇</ng-container>
         <ng-container *ngIf="trackingInfoSwitch">⬆ ⬆ trackingInfo ⬆ ⬆</ng-container>
       </p>
@@ -120,6 +132,7 @@
           (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7)}})
         </p>
         <p>
+          <span>Score：{{ card.score }} {{maxNegativeScoreIndex + 1}}</span>
           <span>winningArray:({{errorModeDisplay.winningArray}}),</span>
           <span>recent:({{errorModeDisplay.recent}}),</span>
           <span>remain:({{errorModeDisplay.remain}}),</span>
@@ -129,14 +142,19 @@
           <br>
           <span>within1d:({{errorModeDisplay.within1d}})</span>
           <span>within2d:({{errorModeDisplay.within2d}})</span>
-          <span>within6d:({{errorModeDisplay.within6d}})</span>
-          <span>within31d:({{errorModeDisplay.within31d}})</span>
+          <span>within7d:({{errorModeDisplay.within7d}})</span>
+          <span>within14d:({{errorModeDisplay.within14d}})</span>
         </p>
       </div>
 
       <hr />
 
-      <div class="iframeContainer" *ngIf="viewIframeImg">
+      <p (click)="imgSwitch = !imgSwitch" style="cursor: pointer;">
+        <ng-container *ngIf="!imgSwitch">⬇ ⬇ Image ⬇ ⬇</ng-container>
+        <ng-container *ngIf="imgSwitch">⬆ ⬆ Image ⬆ ⬆</ng-container>
+      </p>
+
+      <div class="iframeContainer" *ngIf="imgSwitch && viewIframeImg">
         <iframe class="iframeResponsive" [src]="imgSearchUrl" target="_parent"></iframe>
       </div>
 

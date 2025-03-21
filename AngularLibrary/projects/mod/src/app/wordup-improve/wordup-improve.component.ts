@@ -59,6 +59,7 @@ export class WordupImproveComponent {
   REGEXP_TYPE = REGEXP_TYPE;
   imgSearchUrl: SafeHtml | undefined;
   trackingInfoSwitch: boolean = false;
+  imgSwitch: boolean = false;
 
   constructor(
     private httpClient: HttpClient,
@@ -127,7 +128,7 @@ export class WordupImproveComponent {
 
     this.errorModeDisplay.notReviewdCount = 0;
 
-    console.log('this.config',this.config)
+    // console.log('this.config',this.config)
   }
 
   /**
@@ -222,7 +223,7 @@ export class WordupImproveComponent {
           this.answerScore = JSON.parse(
             localStorage.getItem('answerScore') ?? '[]'
           );
-          console.log('this.answerScore',this.answerScore)
+          // console.log('this.answerScore',this.answerScore)
           this.configInit();
           this.editedCardsInit();
         })
@@ -255,11 +256,12 @@ export class WordupImproveComponent {
       this.maxNegativeScore = Math.min(...negativeScores.map((item: any) => item.score));
     }
 
-    const result = this.cards?.reduce((acc: any, card) => {
-      // 如果該 score 尚未存在於 accumulator，則初始化為 0
-      acc[card.score] = (acc[card.score] || 0) + 1;
-      return acc;
-    }, {});
+    // 計算每種分數數量
+    // const result = this.cards?.reduce((acc: any, card) => {
+    //   // 如果該 score 尚未存在於 accumulator，則初始化為 0
+    //   acc[card.score] = (acc[card.score] || 0) + 1;
+    //   return acc;
+    // }, {});
   }
 
   /**
@@ -295,6 +297,7 @@ export class WordupImproveComponent {
   * 根據邏輯抽取卡片資料
   */
   drawCard(): void {
+
     this.calculateAverageNegativeScore();
 
     // 錯誤優先模式
@@ -305,7 +308,7 @@ export class WordupImproveComponent {
 
       const preprocessCards = this.cards.reduce((acc: {
         positive: Card[]; recent: Card[]; remain: Card[]; notReviewed: Card[]; maxNegativeScore: Card[];
-        within1d: Card[]; within2d: Card[]; within6d: Card[]; within31d: Card[];
+        within1d: Card[]; within2d: Card[]; within7d: Card[]; within14d: Card[];
       }, card) => {
         let days = card.updateTime.days;
         let hours = card.updateTime.hours;
@@ -324,10 +327,10 @@ export class WordupImproveComponent {
           acc.within1d.push(card);
         } else if (days > 0 && days <= 2) { // 最近 2 天內的
           acc.within2d.push(card);
-        } else if (days > 0 && days <= 6) { // 最近 6 天內的
-          acc.within6d.push(card);
-        } else if (days > 0 && days <= 31) { // 最近 31 天內的
-          acc.within31d.push(card);
+        } else if (days > 0 && days <= 7) { // 最近 6 天內的
+          acc.within7d.push(card);
+        } else if (days > 0 && days <= 14) { // 最近 31 天內的
+          acc.within14d.push(card);
         } else {
           acc.remain.push(card);
         }
@@ -335,7 +338,7 @@ export class WordupImproveComponent {
         return acc;
       }, {
         recent: [], remain: [], notReviewed: [], maxNegativeScore: [],
-        within1d: [], within2d: [], within6d: [], within31d: [],
+        within1d: [], within2d: [], within7d: [], within14d: [],
         positive: []
       });
 
@@ -345,13 +348,13 @@ export class WordupImproveComponent {
       this.errorModeDisplay.maxNegativeScore = preprocessCards.maxNegativeScore.length;
       this.errorModeDisplay.within1d = preprocessCards.within1d.length;
       this.errorModeDisplay.within2d = preprocessCards.within2d.length;
-      this.errorModeDisplay.within6d = preprocessCards.within6d.length;
-      this.errorModeDisplay.within31d = preprocessCards.within31d.length;
+      this.errorModeDisplay.within7d = preprocessCards.within7d.length;
+      this.errorModeDisplay.within14d = preprocessCards.within14d.length;
       this.errorModeDisplay.positive = preprocessCards.positive.length;
 
       // 先背最多扣分的，如果都跑進一小時內，沒了就接續最近七天的，七天的都進一小時內，換最近三十天的跟新的抽
 
-      if (this.errorModeDisplay.notReviewdCount <= 5) {
+      if (this.errorModeDisplay.notReviewdCount <= 9) {
         this.errorModeDisplay.winningArray = 'notReviewd';
         this.errorModeDisplay.notReviewdCount += 1;
         preprocessCards.notReviewed.sort((a, b) => b.sentences?.length - a.sentences?.length);
@@ -361,8 +364,8 @@ export class WordupImproveComponent {
           .concat(preprocessCards.maxNegativeScore)
           .concat(preprocessCards.within1d)
           .concat(preprocessCards.within2d)
-          .concat(preprocessCards.within6d)
-          .concat(preprocessCards.within31d)
+          .concat(preprocessCards.within7d)
+          .concat(preprocessCards.within14d)
           .concat(preprocessCards.positive)
       } else {
         if (preprocessCards.maxNegativeScore.length != 0) {
@@ -374,72 +377,71 @@ export class WordupImproveComponent {
               } else {
                 return a.updateTime.days - b.updateTime.days
               }
-            }
-
-            );
+            });
           } else {
             preprocessCards.maxNegativeScore.sort((a, b) => b.updateTime.days - a.updateTime.days);
           }
+
           this.cards = preprocessCards.maxNegativeScore
             .concat(preprocessCards.recent)
             .concat(preprocessCards.remain)
             .concat(preprocessCards.notReviewed)
             .concat(preprocessCards.within1d)
             .concat(preprocessCards.within2d)
-            .concat(preprocessCards.within6d)
-            .concat(preprocessCards.within31d)
+            .concat(preprocessCards.within7d)
+            .concat(preprocessCards.within14d)
             .concat(preprocessCards.positive)
         } else {
-          if (preprocessCards.within6d.length != 0) {
-            this.errorModeDisplay.winningArray = 'within6d';
-            preprocessCards.within6d.sort((a, b) => a.score - b.score);
-            this.cards = preprocessCards.within6d
+          if (preprocessCards.within7d.length != 0) {
+            this.errorModeDisplay.winningArray = 'within7d';
+            preprocessCards.within7d.sort((a, b) => a.score - b.score);
+            this.cards = preprocessCards.within7d
               .concat(preprocessCards.recent)
               .concat(preprocessCards.remain)
               .concat(preprocessCards.maxNegativeScore)
               .concat(preprocessCards.notReviewed)
               .concat(preprocessCards.within2d)
               .concat(preprocessCards.within1d)
-              .concat(preprocessCards.within31d)
+              .concat(preprocessCards.within14d)
               .concat(preprocessCards.positive)
           } else {
-            if (preprocessCards.within2d.length != 0) {
-              this.errorModeDisplay.winningArray = 'within2d';
-              preprocessCards.within2d.sort((a, b) => a.score - b.score);
-              this.cards = preprocessCards.within2d
+            if (preprocessCards.within14d.length != 0) {
+              this.errorModeDisplay.winningArray = 'within14d';
+              preprocessCards.within14d.sort((a, b) => a.score - b.score);
+              this.cards = preprocessCards.within14d
                 .concat(preprocessCards.recent)
                 .concat(preprocessCards.remain)
                 .concat(preprocessCards.maxNegativeScore)
                 .concat(preprocessCards.notReviewed)
                 .concat(preprocessCards.within1d)
-                .concat(preprocessCards.within6d)
-                .concat(preprocessCards.within31d)
+                .concat(preprocessCards.within2d)
+                .concat(preprocessCards.within7d)
                 .concat(preprocessCards.positive)
             } else {
-              if (preprocessCards.within31d.length != 0) {
-                this.errorModeDisplay.winningArray = 'within31d';
-                preprocessCards.within31d.sort((a, b) => a.score - b.score);
-                this.cards = preprocessCards.within31d
+              if (preprocessCards.within2d.length != 0) {
+                this.errorModeDisplay.winningArray = 'within2d';
+                preprocessCards.within2d.sort((a, b) => a.score - b.score);
+                this.cards = preprocessCards.within2d
                   .concat(preprocessCards.recent)
                   .concat(preprocessCards.remain)
                   .concat(preprocessCards.maxNegativeScore)
                   .concat(preprocessCards.notReviewed)
                   .concat(preprocessCards.within1d)
-                  .concat(preprocessCards.within2d)
-                  .concat(preprocessCards.within6d)
+                  .concat(preprocessCards.within7d)
+                  .concat(preprocessCards.within14d)
                   .concat(preprocessCards.positive)
               } else {
                 if (preprocessCards.within1d.length != 0) {
                   this.errorModeDisplay.winningArray = 'within1d';
                   preprocessCards.within1d.sort((a, b) => a.score - b.score);
-                  this.cards = preprocessCards.within6d
+                  this.cards = preprocessCards.within7d
                     .concat(preprocessCards.recent)
                     .concat(preprocessCards.remain)
                     .concat(preprocessCards.maxNegativeScore)
                     .concat(preprocessCards.notReviewed)
-                    .concat(preprocessCards.within31d)
+                    .concat(preprocessCards.within14d)
                     .concat(preprocessCards.within2d)
-                    .concat(preprocessCards.within6d)
+                    .concat(preprocessCards.within7d)
                     .concat(preprocessCards.positive)
                 } else {
                   const n = preprocessCards.notReviewed.concat(preprocessCards.remain);
@@ -448,7 +450,7 @@ export class WordupImproveComponent {
                   n.unshift(item); // 放到最前面
 
                   this.cards = n.concat(preprocessCards.recent).concat(preprocessCards.maxNegativeScore)
-                    .concat(preprocessCards.within1d).concat(preprocessCards.within2d).concat(preprocessCards.within6d).concat(preprocessCards.within31d);
+                    .concat(preprocessCards.within1d).concat(preprocessCards.within2d).concat(preprocessCards.within7d).concat(preprocessCards.within14d);
                   this.errorModeDisplay.winningArray = 'notReviewed/remain';
                 }
               }
@@ -456,7 +458,7 @@ export class WordupImproveComponent {
           }
         }
 
-        console.log(this.cards)
+        // console.log(this.cards)
       }
 
       // const nonEmptyArrays = [{
@@ -577,7 +579,7 @@ export class WordupImproveComponent {
     this.recordCalculate();
     this.drawSentence();
     this.calculateFamiliarity();
-    this.unfamiliarReflash();
+    // this.unfamiliarReflash();
     this.updateTimer();
     let speakWords = this.config.seeAnswerSpeak ? this.sentence.en : this.card.en;
     this.debounceBeSub$?.next([this.speak, speakWords]);
@@ -588,7 +590,7 @@ export class WordupImproveComponent {
     this.openIframe('https://www.google.com/search?sca_esv=1ddba70af590f790&sca_upv=1&igu=1&q=', '&udm=2&fbs=AEQNm0DVrIRjdA3gRKfJJ-deMT8ZtYOjoIt1NWOMRkEKym4u5PkAZgxJOmIgPx6WieMhF6q1Hq7W6nME2Vp0eHuijF3ZElaTgD0zbj1gkQrti2r6HpgEQJ__FI2P2zVbzOTQnx-xQGuWfPA7_LjHL8X54xCjPigLtLX638JLYGhCvRlpvvGBo-fNpc7q_rU8dgffCadMYeMgxPqmupqDpgcFpVxKo2EBMA&sa=X&ved=2ahUKEwj91ZGlkuCIAxU4cPUHHd29CMAQtKgLegQIEhAB&biw=1920&bih=919&dpr=1');
     // ,' definition'
 
-    console.log('this.cards',this.cards)
+    // console.log('this.cards',this.cards)
   }
 
   /**
@@ -1372,7 +1374,7 @@ export class WordupImproveComponent {
     this.editedCards.card = new Card();
     this.editedCards.notEditMode = true;
     this.refreshCnEdited();
-    console.log('this.editedCards',this.editedCards)
+    // console.log('this.editedCards',this.editedCards)
   }
 
   /**
