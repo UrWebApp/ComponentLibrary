@@ -9,16 +9,13 @@ import { WordupImproveComponent } from './wordup-improve/wordup-improve.componen
 import { PalWorldMapLeafletComponent } from './pal-world-map-leaflet/pal-world-map-leaflet.component';
 import { HomeComponent } from './home/home.component';
 
-import { OneDayOneThousandComponent } from './one-day-one-thousand/one-day-one-thousand.component';
-
 const routes: Routes = [
-  { path: 'wordup-improve', component: OneDayOneThousandComponent, pathMatch: 'full' },
   { path: '', component: WordupImproveComponent, pathMatch: 'full' },
   { path: 'sample', component: SampleComponent, pathMatch: 'full' },
   { path: 'dynamic-masonry', component: DynamicMasonryComponent, pathMatch: 'full' },
   { path: 'memory-cards', component: MemoryCardsComponent, pathMatch: 'full' },
   { path: 'rwd-table', component: RwdTableComponent, pathMatch: 'full' },
-  { path: 'super-menu', component: SuperMenuComponent, pathMatch: 'full'},
+  { path: 'super-menu', component: SuperMenuComponent, pathMatch: 'full' },
   { path: 'pal-tool', component: PalWorldMapLeafletComponent, pathMatch: 'full' },
   { path: 'en-word-hero', component: WordupImproveComponent, pathMatch: 'full' },
 ];

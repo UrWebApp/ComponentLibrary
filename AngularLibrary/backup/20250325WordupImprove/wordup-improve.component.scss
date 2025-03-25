@@ -1,0 +1,255 @@
+* {
+  font-size: 2rem;
+  line-height: 4rem;
+  text-align: center;
+}
+
+hr {
+  width: 95%;
+}
+
+button {
+  border-radius: 8px;
+  min-width: 160px;
+  margin: 1rem;
+}
+
+table {
+
+  height: 50vh;
+  overflow-y: scroll;
+  display: block;
+
+  * {
+    font-size: 1.5rem;
+  }
+
+  td {
+    padding: 1rem;
+    border: 1px solid #ccc;
+  }
+}
+
+.rankingList {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 5rem;
+
+  >ol {
+    border: 1px solid black;
+    padding: 1rem;
+  }
+
+  .answeredMostQuestions {
+    color: #ffff00;
+    text-shadow: red 2.1px 1.1px 7.1px
+  }
+
+  .mostPositivePoints {
+    color: #00ff7f;
+    text-shadow: blue 2.1px 1.1px 7.1px
+  }
+
+  .mostNegativePoints {
+    color: #ff0092;
+    text-shadow: orange 2.1px 1.1px 7.1px
+  }
+}
+
+.list {
+  display: none;
+}
+
+.box {
+  margin-top: 10vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding-bottom: 3rem;
+}
+
+.unobviousBtn {
+  border: 1px solid gray;
+  color: gray;
+  font-size: 1.5rem;
+  min-width: 120px;
+  line-height: 2.5rem;
+}
+
+.login {
+  margin-top: 20vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding-bottom: 3rem;
+
+  .user {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    input {
+      width: fit-content;
+    }
+  }
+
+  .error {
+    color: red;
+  }
+
+  .info {
+    font-size: 1.5rem;
+    color: darkcyan;
+  }
+}
+
+.cardBox {
+  padding: 1.5rem;
+}
+
+.drawMode {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+lib-svg {
+  width: 30px;
+}
+
+.quickBtn {
+  border-radius: 50%;
+  height: 5rem;
+  width: 5rem;
+  min-width: unset;
+  margin: unset;
+  position: fixed;
+  right: 1rem;
+  z-index: 1;
+  opacity: 0.3;
+
+  &.CR {
+    top: 1rem;
+  }
+
+  &.CB {
+    top: 6rem;
+  }
+
+  &.EP {
+    top: 11rem;
+  }
+
+  &.RM {
+    top: 16rem;
+  }
+
+  &.NC {
+    bottom: 6rem;
+  }
+  
+  &.BT {
+    bottom: 1rem;
+  }
+}
+
+@include LargeDevices {
+  .box {
+    margin-top: 10vh;
+  }
+}
+
+@include MediumDevices {
+  .box {
+    margin-top: 10vh;
+  }
+}
+
+@include SmallDevices {
+
+  * {
+    line-height: 3rem;
+  }
+
+  .subInfo {
+    font-size: 1.3rem;
+
+    * {
+      font-size: 1.5rem;
+    }
+  }
+
+  .toolBox {
+    display: flex;
+    justify-content: center;
+  }
+
+  .box {
+    margin-top: 5vh;
+  }
+
+  input {
+    max-width: 260px;
+  }
+
+  table:not(.familiarityTable) {
+    display: none;
+  }
+
+  .list {
+    display: block;
+    height: 70vh;
+    overflow-y: scroll;
+    width: 85vw;
+
+    * {
+      font-size: 1.5rem;
+    }
+  }
+
+  .login {
+    margin-top: 1rem;
+
+    .info {
+      padding: 0 2rem;
+      font-size: 1.5rem;
+    }
+  }
+
+  .rankingList {
+    flex-direction: column;
+
+    * {
+      word-wrap: break-word;
+    }
+
+    ol li:not(:first-child) {
+      font-size: 1.3rem;
+    }
+  }
+
+  .cardBox {
+    padding-top: 0;
+  }
+
+  .button-container {
+    margin: 1rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    /* 讓按鈕換行 */
+    gap: 10px;
+
+    /* 設定按鈕之間的間距 */
+    button {
+      /* 設定每個按鈕佔用 50% 的寬度減去間距 */
+      flex: 0 0 calc(50% - 10px);
+      margin: 0;
+    }
+  }
+
+  .trackingInfo>* {
+    font-size: 1.1rem;
+  }
+}

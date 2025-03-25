@@ -7,6 +7,7 @@ import {
   debounce,
   delay,
   filter,
+  forkJoin,
   of,
   switchMap,
   take,
@@ -208,7 +209,7 @@ export class WordupImproveComponent {
     );
   }
 
-  url = './assets/enHelper/vocabulary.json';
+  vocabularyUrl = './assets/enHelper/vocabulary.json';
   cards: Array<Card> = [];
   answerScore: any = [];
   /**
@@ -216,7 +217,7 @@ export class WordupImproveComponent {
   */
   initCards(): void {
     this.httpClient
-      .get(this.url)
+      .get(this.vocabularyUrl)
       .pipe(
         tap((res: any) => {
           this.cards = res;
@@ -1721,6 +1722,37 @@ export class WordupImproveComponent {
         take(1),
       ).subscribe(() => this.commonService.loadingOff());
     }
+  }
+
+
+  grammar = {};
+  vocabularyTypes: any = [];
+  grammarUrl = './assets/enHelper/grammar.json';
+  typesUrl = './assets/enHelper/types.json';
+
+  ieltsInfoManagement() {
+    forkJoin({
+      grammar: this.httpClient.get<any>(this.grammarUrl),
+      vocabularyTypes: this.httpClient.get<any>(this.typesUrl)
+    })
+      .pipe(
+        tap(({ grammar, vocabularyTypes }) => {
+          this.grammar = grammar;
+          this.vocabularyTypes = vocabularyTypes;
+          console.log(this.vocabularyTypes)
+        })
+      )
+      .subscribe(() => { });
+  }
+
+  typesSelected: string[] = [];
+  typesSelect(type: string, event: any) {
+    if (event.target.checked) {
+      this.typesSelected.push(type);
+    } else {
+      this.typesSelected = this.typesSelected.filter(t => t !== type);
+    }
+    console.log(this.typesSelected)
   }
 }
 

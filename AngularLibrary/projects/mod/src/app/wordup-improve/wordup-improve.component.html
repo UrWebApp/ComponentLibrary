@@ -584,3 +584,26 @@
     <span class="userCantSelect">匯出新增卡片 {{editedCards.date}}</span>
   </button>
 </div>
+
+<ul>
+  <li *ngFor="let type of vocabularyTypes; let i = index">
+    <label>
+      <input type="checkbox" [(ngModel)]="type.level1.selected" (change)="typesSelect(type.level1.en, $event)">
+      {{ type.level1.cn }}
+    </label>
+    <ng-container *ngIf="type.level1.selected">
+      <ul>
+        <li *ngFor="let lv2 of type.level2; let i = index" style="display:flex">
+          <label>
+            <input type="checkbox" [(ngModel)]="lv2.selected" (change)="typesSelect(lv2.en, $event)">
+            {{ lv2.en }}
+          </label>
+          <ng-container *ngIf="lv2.selected">
+        <li *ngFor="let lv3 of lv2.level3; let i = index">
+          <label>
+            <input type="checkbox" [(ngModel)]="lv3.selected" (change)="typesSelect(lv3.en, $event)">
+            {{ lv3.en }}
+          </label>
+        </li>
+    </ng-container>
+</ul>

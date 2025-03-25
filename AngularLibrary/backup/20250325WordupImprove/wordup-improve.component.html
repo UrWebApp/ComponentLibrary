@@ -1,0 +1,607 @@
+<button class="quickBtn CR" (click)="searchWordMark()">懵</button>
+<button class="quickBtn CB"
+  (click)="openBlankUrl('https://dictionary.cambridge.org/dictionary/english-chinese-traditional/')">劍</button>
+<button class="quickBtn EP" (click)="copySelectedText(config.prompt)">解</button>
+<button class="quickBtn NC"
+  (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;">新</button>
+<button class="quickBtn BT" (click)="commonService.goToAnchor(backToTopDOM)">🔝</button>
+
+<!-- <mod-chinese-model></mod-chinese-model> -->
+
+<div class="box" [style.display]="(editedCards.displayAddNewCard || firebaseAuth.isEnterRegistPage) ? 'none' : 'flex'"
+  (window:resize)="onResize($event)" #backToTop>
+  <div class="toolBox">
+    <button class="answerScoreResetBtn" *ngIf="displayMode !== DisplayMode.Answer" (click)="seeAnswer()">
+      <span class="userCantSelect">{{ displayMode }}</span>
+      <span *ngIf="config?.keyboardControl?.seeAnswer">({{config.keyboardControl?.seeAnswer}})</span>
+    </button>
+    <ng-container *ngIf="displayMode === DisplayMode.Answer">
+      <button (click)="interposer(true)">
+        <span class="userCantSelect">會 + {{ familiarScore }}</span>
+        <span
+          *ngIf="config?.keyboardControl?.answerScoreResetTrue">({{config.keyboardControl?.answerScoreResetTrue}})</span>
+      </button>
+      <button (click)="interposer(false)">
+        <span class="userCantSelect">不會 {{ notFamiliarScore }}</span>
+        <span
+          *ngIf="config?.keyboardControl?.answerScoreResetFalse">({{config.keyboardControl?.answerScoreResetFalse}})</span>
+      </button>
+    </ng-container>
+  </div>
+
+  <div class="cardBox">
+    <div *ngIf="card">
+      <span class="subInfo userCantSelect">
+        Score：{{ card.score }} (<span [ngSwitch]="errorModeDisplay.winningArray">
+          <ng-container *ngSwitchCase="'recent'">最近的:({{errorModeDisplay.recent}}),</ng-container>
+          <ng-container *ngSwitchCase="'remain'">remain:({{errorModeDisplay.remain}}),</ng-container>
+          <ng-container *ngSwitchCase="'notReviewed'">未審閱:({{errorModeDisplay.notReviewed}}),</ng-container>
+          <ng-container *ngSwitchCase="'maxNegativeScore'">最大負分:({{errorModeDisplay.maxNegativeScore +
+            1}}),</ng-container>
+          <ng-container *ngSwitchCase="'positive'">positive:({{errorModeDisplay.positive}})</ng-container>
+          <ng-container *ngSwitchCase="'within1d'">within1d:({{errorModeDisplay.within1d}})</ng-container>
+          <ng-container *ngSwitchCase="'within2d'">within2d:({{errorModeDisplay.within2d}})</ng-container>
+          <ng-container *ngSwitchCase="'within7d'">within7d:({{errorModeDisplay.within7d}})</ng-container>
+          <ng-container *ngSwitchCase="'within14d'">within14d:({{errorModeDisplay.within14d}})</ng-container>
+        </span>),
+        <span>
+          {{ card.updateTime.days }} d / {{ card.updateTime.hours }} h /{{ card.updateTime.minutes }} m
+        </span>
+      </span>
+      <br>
+      <span>
+        (單)
+        <lib-svg [src]="'./assets/enHelper/audio.svg'" (click)="speakMsg(card.en)"></lib-svg>
+        <span *ngIf="config?.keyboardControl?.speakMsgWord">({{config.keyboardControl?.speakMsgWord}})</span>
+        (句)
+        <lib-svg [src]="'./assets/enHelper/audio.svg'" (click)="speakMsg(sentence?.en)"></lib-svg>
+        <span *ngIf="config?.keyboardControl?.speakMsgSentence">({{config.keyboardControl?.speakMsgSentence}})</span>,
+      </span>
+      <hr />
+      <p [innerHtml]="sentence?.en | highlight : card.en : REGEXP_TYPE.First"></p>
+      <button *ngIf="displayMode !== DisplayMode.Answer && card.sentences.length > 1" (click)="drawSentence()">
+        更多例句 ({{ card.sentences.length }})
+        <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
+      </button>
+      <ng-container *ngIf="displayMode === DisplayMode.Answer">
+        <p>
+          <ng-container *ngIf="sentenceAnswerDisplay">
+            <p [innerHtml]="sentence?.cn"></p>
+          </ng-container>
+        </p>
+        <button *ngIf="(displayMode !== DisplayMode.Answer || sentenceAnswerDisplay) && card.sentences.length > 1"
+          (click)="drawSentence()">
+          更多例句 ({{ card.sentences.length }})
+          <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
+        </button>
+        <button *ngIf="!sentenceAnswerDisplay" (click)="showExanpleAnswers()">
+          例句答案
+          <span
+            *ngIf="config?.keyboardControl?.showExanpleAnswers">({{config.keyboardControl?.showExanpleAnswers}})</span>
+        </button>
+        <ng-container *ngIf="sentenceAnswerDisplay">
+          <hr />
+          <p>{{ card.en }}</p>
+          <p>
+            <ng-container *ngIf="editedCards.notEditMode else editMode">
+              {{ card.cn }}
+            </ng-container>
+            <ng-template #editMode>
+              <input [(ngModel)]="card.cn" />
+              <lib-svg [src]="'./assets/enHelper/ok.svg'" (click)="updateCnEdite(card)"></lib-svg>
+            </ng-template>
+            <lib-svg [src]="'./assets/enHelper/edit.svg'"
+              (click)="editedCards.notEditMode = !editedCards.notEditMode"></lib-svg>
+          </p>
+          <div style="display:flex;">
+            <details style="width: 50%;">
+              <summary class="subInfo userCantSelect" style="cursor: pointer;">英文相似單字</summary>
+              <ul *ngFor="let i of this.findSameWordsObj.en">
+                <li>[{{i.en}}]{{i.cn}}</li>
+              </ul>
+            </details>
+            <details style="width: 50%;">
+              <summary class="subInfo userCantSelect" style="cursor: pointer;">中文相似單字</summary>
+              <ul *ngFor="let i of this.findSameWordsObj.cn">
+                <li>[{{i.en}}]{{i.cn}}</li>
+              </ul>
+            </details>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      <hr />
+      <p (click)="trackingInfoSwitch = !trackingInfoSwitch" style="cursor: pointer;">
+        <ng-container *ngIf="!trackingInfoSwitch">⬇ ⬇ trackingInfo ⬇ ⬇</ng-container>
+        <ng-container *ngIf="trackingInfoSwitch">⬆ ⬆ trackingInfo ⬆ ⬆</ng-container>
+      </p>
+
+      <div class="trackingInfo" *ngIf="trackingInfoSwitch">
+
+        <p>
+          <ng-container *ngIf="card.types.length > 0">{{card.types | json}}</ng-container>
+          <ng-container *ngIf="card.types.length <= 0">other</ng-container>
+        </p>
+
+        <p class="subInfo userCantSelect">
+          經過 {{ seconds }} 秒，未複習：{{this.familiarity.notReviewed}}
+          <lib-svg [src]="'./assets/enHelper/audio.svg'" (click)="setSpeakSelection()"></lib-svg>
+        </p>
+        <p class="subInfo userCantSelect" *ngIf="this.record?.avgAnswerSpeed?.length > 0">
+          平均答題速度： {{this.record?.avgAnswerSpeedDisplay}} /s
+        </p>
+        <p class="subInfo userCantSelect">
+          (每日 {{ config.answerCountToday?.count }} / 最大 {{ config.answerCountAll }} ) 答題 ( new
+          {{errorModeDisplay.notReviewdCount}})
+        </p>
+        <p class="subInfo userCantSelect">
+          (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7)}})
+        </p>
+        <p>
+          <span>Score：{{ card.score }} {{maxNegativeScoreIndex + 1}}</span>
+          <span>winningArray:({{errorModeDisplay.winningArray}}),</span>
+          <span>recent:({{errorModeDisplay.recent}}),</span>
+          <span>remain:({{errorModeDisplay.remain}}),</span>
+          <span>notReviewed:({{errorModeDisplay.notReviewed}}),</span>
+          <span>maxNegativeScore:({{errorModeDisplay.maxNegativeScore + 1}}),</span>
+          <span>positive:({{errorModeDisplay.positive}})</span>
+          <br>
+          <span>within1d:({{errorModeDisplay.within1d}})</span>
+          <span>within2d:({{errorModeDisplay.within2d}})</span>
+          <span>within7d:({{errorModeDisplay.within7d}})</span>
+          <span>within14d:({{errorModeDisplay.within14d}})</span>
+        </p>
+      </div>
+
+      <hr />
+
+      <p (click)="imgSwitch = !imgSwitch" style="cursor: pointer;">
+        <ng-container *ngIf="!imgSwitch">⬇ ⬇ Image ⬇ ⬇</ng-container>
+        <ng-container *ngIf="imgSwitch">⬆ ⬆ Image ⬆ ⬆</ng-container>
+      </p>
+
+      <div class="iframeContainer" *ngIf="imgSwitch && viewIframeImg">
+        <iframe class="iframeResponsive" [src]="imgSearchUrl" target="_parent"></iframe>
+      </div>
+
+      <hr />
+
+      <div>
+        <input autocomplete="new-password" type="text" [(ngModel)]="searchWord.word" #searchWordInput
+          (click)="keyboardControl = false" />
+        <button (click)="searchWordMark()">
+          <span class="userCantSelect">搜尋單字註記不會</span>
+        </button>
+        <br>
+        <p [innerHTML]="searchWord?.display"></p>
+        <p>{{ searchWord?.explain }}</p>
+        <p *ngIf="searchWord?.score">
+          Score：
+          <ng-container *ngIf="(searchWord?.score - searchWord.notFamiliarScore) > 0">
+            ( {{ searchWord?.score }} - {{ searchWord?.score - searchWord.notFamiliarScore }} )
+            = {{searchWord.notFamiliarScore}}
+          </ng-container>
+
+          <ng-container *ngIf="(searchWord?.score - searchWord.notFamiliarScore) < 0">
+            ( {{ searchWord?.score - searchWord.notFamiliarScore }} {{searchWord.notFamiliarScore}} )
+            = {{ searchWord?.score }}
+          </ng-container>
+
+          <span> ,
+            {{ searchWord?.updateTime?.days }} d /
+            {{ searchWord?.updateTime?.hours }} h /
+            {{ searchWord?.updateTime?.minutes }} m
+          </span>
+        </p>
+        <hr *ngIf="searchWord?.similarWords" />
+        <p style="max-width:70rem;">{{ searchWord?.similarWords }}</p>
+        <div class="button-container">
+          <button (click)="openBlankUrl('https://dictionary.cambridge.org/dictionary/english-chinese-traditional/')">
+            <span class="userCantSelect">劍橋</span>
+          </button>
+          <button
+            (click)="additionalFeatures('https://www.google.com/search?sca_esv=1ddba70af590f790&sca_upv=1&igu=1&q=','&udm=2&fbs=AEQNm0DVrIRjdA3gRKfJJ-deMT8ZtYOjoIt1NWOMRkEKym4u5PkAZgxJOmIgPx6WieMhF6q1Hq7W6nME2Vp0eHuijF3ZElaTgD0zbj1gkQrti2r6HpgEQJ__FI2P2zVbzOTQnx-xQGuWfPA7_LjHL8X54xCjPigLtLX638JLYGhCvRlpvvGBo-fNpc7q_rU8dgffCadMYeMgxPqmupqDpgcFpVxKo2EBMA&sa=X&ved=2ahUKEwj91ZGlkuCIAxU4cPUHHd29CMAQtKgLegQIEhAB&biw=1920&bih=919&dpr=1')">
+            <span class="userCantSelect">圖片</span>
+          </button>
+          <button (click)="copySelectedText('逐字解釋')">
+            <span class="userCantSelect">逐字解釋</span>
+          </button>
+          <button (click)="copySelectedText('如何記憶單字')">
+            <span class="userCantSelect">如何記憶</span>
+          </button>
+          <!-- <button (click)="additionalFeatures('https://www.google.com/search?igu=1&?igu=1&q=Synonyms+')">
+            <span class="userCantSelect">同義詞 Synonyms</span>
+          </button>
+          <button (click)="additionalFeatures('https://www.google.com/search?igu=1&?q=Antonyms+')">
+            <span class="userCantSelect">反義詞 Antonyms</span>
+          </button> -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+
+  <ng-container *ngIf="debugDisplay">
+    <p>20 分鐘以內 {{familiarity.twentyMinutes}}</p>
+    <p>1 天以內 {{familiarity.oneHour}}</p>
+    <p>介於 1 ~ 7 天 {{familiarity.oneDay}}</p>
+    <p>介於 7 ~ 30 天 {{familiarity.sevenDays}}</p>
+    <p>大於 30 天 {{familiarity.oneMonth}}</p>
+    <hr>
+    <p>單字卡數量 {{familiarity.total}}</p>
+    <p>未複習到 {{familiarity.notReviewed}}</p>
+    <p>超不熟悉 {{familiarity.veryUnfamiliar}}</p>
+    <p>不熟悉 {{familiarity.unfamiliar}}</p>
+    <p>熟悉 {{familiarity.familiar}}</p>
+    <p>超熟悉 {{familiarity.veryFamiliar}}</p>
+
+    <ng-container *ngIf="debug?.list?.length > 0">
+      <hr>
+      <table>
+        <thead>
+          <th colspan="7">
+            頭獎門檻：{{ debug?.thresholdScore }} / 平均抽取次數
+            {{ record?.drawCountRecordDisplay }} / 平均門檻
+            {{ record?.finalScoreRecordDisplay }} / 平均分數
+            {{ record?.finalScoreRecordDisplay / record?.drawCountRecordDisplay | floor }}
+          </th>
+        </thead>
+        <tbody>
+          <td data-th="抽取次數">抽取次數</td>
+          <td data-th="抽到的單字">抽到的單字</td>
+          <td data-th="最終分數">最終分數</td>
+          <td data-th="加權分數">加權分數</td>
+          <td data-th="句子頻率次數">句子頻率次數</td>
+          <td data-th="答題分數">答題分數</td>
+          <td data-th="上次答題時間">上次答題時間</td>
+        </tbody>
+        <tr *ngFor="let item of debug?.list">
+          <td data-th="抽取次數">{{ item?.drawCount }}</td>
+          <td data-th="抽到的單字">{{ item?.en }}</td>
+          <td data-th="最終分數">{{ item?.finalScore }}</td>
+          <td data-th="加權分數">
+            <span *ngIf="item?.noAnsRandomScore else ansRandomScore">
+              未答題 {{ item?.noAnsRandomScore }}
+            </span>
+            <ng-template #ansRandomScore>
+              答題 {{ item?.ansScore }} / 時間 {{ item?.timeDiffeScore }}
+            </ng-template>
+            => {{ item?.weightedScore }}
+          </td>
+          <td data-th="句子頻率次數">{{ item?.sentencesLength }}</td>
+          <td data-th="答題分數">{{ item?.score }}</td>
+          <td data-th="上次答題時間">
+            {{ item?.updateTime?.days }} d /
+            {{ item?.updateTime?.hours }} h /
+            {{ item?.updateTime?.minutes }} m
+          </td>
+        </tr>
+        <tfoot></tfoot>
+      </table>
+      <div class="list">
+        <p>頭獎門檻：{{ debug?.thresholdScore }}</p>
+        <p>平均抽取次數 {{ record?.drawCountRecordDisplay }}</p>
+        <p>平均門檻 {{ record?.finalScoreRecordDisplay }}</p>
+        <ol *ngFor="let item of debug?.list" style="border: 1px solid #ccc">
+          <li>抽取次數：{{ item?.drawCount }}</li>
+          <li>抽到的單字：{{ item?.en }}</li>
+          <li>最終分數：{{ item?.finalScore }}</li>
+          <li>加權分數：{{ item?.weightedScore }}</li>
+          <li>句子頻率次數：{{ item?.sentencesLength }}</li>
+          <li>答題分數：{{ item?.score }}</li>
+          <li>
+            上次答題時間：
+            {{ item?.updateTime?.days }} d /
+            {{ item?.updateTime?.hours }} h /
+            {{ item?.updateTime?.minutes }} m
+          </li>
+        </ol>
+      </div>
+    </ng-container>
+    <hr style="width: 95%" />
+  </ng-container>
+
+  <ng-container *ngIf="displayUnfamiliar">
+
+    <div>
+      <button class="unobviousBtn" (click)="sortByMostNegative()">
+        依照負分最多排列
+      </button>
+
+      <button class="unobviousBtn" (click)="unfamiliarReflash()">
+        依照天數負分兼容排列
+      </button>
+    </div>
+
+    <table>
+      <tbody>
+        <td></td>
+        <td>顯示中文</td>
+        <td data-th="加權分數">加權分數</td>
+        <td data-th="英文">英文</td>
+        <td data-th="句子頻率次數">句子頻率次數</td>
+        <td data-th="答題分數">答題分數</td>
+        <td data-th="上次答題時間">上次答題時間</td>
+        <td data-th="中文" style="min-width: 20rem">中文</td>
+      </tbody>
+      <tr *ngFor="let item of unfamiliarList;let i = index;">
+        <td>{{i + 1}}</td>
+        <td>
+          <button class="unobviousBtn" (click)="setUnfamiliarDisplayAnswer(item)">
+            看答案
+          </button>
+        </td>
+        <td data-th="加權分數">{{ (item?.score * 1.3) - item?.updateTime?.days }}</td>
+        <td data-th="英文">{{ item?.en }}</td>
+        <td data-th="句子頻率次數">{{ item?.sentencesLength }}</td>
+        <td data-th="答題分數">
+          <button class="unobviousBtn" (click)="answerUnfamiliarScoreReset(true, item?.en)">+</button>
+          {{ item?.score }}
+          <button class="unobviousBtn" (click)="answerUnfamiliarScoreReset(false, item?.en)">-</button>
+        </td>
+        <td data-th="上次答題時間">
+          {{ item?.updateTime?.days }} d /
+          {{ item?.updateTime?.hours }} h /
+          {{ item?.updateTime?.minutes }} m
+        </td>
+        <td data-th="中文">
+          <ng-container *ngIf="item?.displayAnswer">
+            {{ item?.cn }}
+          </ng-container>
+        </td>
+      </tr>
+    </table>
+
+    <div class="list">
+      <ol *ngFor="let item of unfamiliarList;let i = index;" style="border: 1px solid #ccc">
+        <li>{{i + 1}}</li>
+        <li>
+          <button class="unobviousBtn" (click)="setUnfamiliarDisplayAnswer(item)">
+            看答案
+          </button>
+        </li>
+        <li>加權分數：{{ (item?.score * 1.3) - item?.updateTime?.days }}</li>
+        <li>英文：{{ item?.en }}</li>
+        <li>句子頻率次數：{{ item?.sentencesLength }}</li>
+        <li>答題分數：
+          <button style="min-width: unset;" (click)="answerUnfamiliarScoreReset(true, item?.en)">+</button>
+          {{ item?.score }}
+          <button style="min-width: unset;" (click)="answerUnfamiliarScoreReset(false, item?.en)">-</button>
+        </li>
+        <li>
+          上次答題時間：
+          {{ item?.updateTime?.days }} d /
+          {{ item?.updateTime?.hours }} h /
+          {{ item?.updateTime?.minutes }} m
+        </li>
+        <li>
+          中文：
+          <ng-container *ngIf="item?.displayAnswer">
+            {{ item?.cn }}
+          </ng-container>
+        </li>
+      </ol>
+    </div>
+
+    <hr />
+  </ng-container>
+
+  <div>
+    <input autocomplete="new-password" type="text" [(ngModel)]="searchChineseObj.word"
+      (click)="keyboardControl = false" />
+    <button (click)="searchChinese()">
+      <span class="userCantSelect">搜尋中文相似單字</span>
+    </button>
+    <p>{{ searchChineseObj.similarWords }}</p>
+    <button (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;">
+      <span class="userCantSelect">新增新卡片</span>
+    </button>
+  </div>
+
+  <hr>
+
+  <div style="max-width: 85vw">
+    <div>
+      <button class="unobviousBtn" (click)="enterRegistPage()">註冊登入</button>
+      <button class="unobviousBtn" (click)="setTheme()">切換黑白模式</button>
+      <br />
+      <button class="unobviousBtn" (click)="clickDebug()">Debug</button>
+      <button class="unobviousBtn" (click)="this.displayUnfamiliar = !this.displayUnfamiliar;">
+        不熟榜
+      </button>
+      <button class="unobviousBtn" (click)="keyboardControl = !keyboardControl">專注鍵盤模式 ({{ keyboardControl }})</button>
+    </div>
+    <!-- <canvas id="canvas">{{ chart }}</canvas> -->
+    <div style="display: flex; flex-direction: column; align-items: center" *ngIf="debugDisplay">
+      <hr />
+      <p>
+        Config：<button class="unobviousBtn" (click)="importConfig()">
+          更改設定檔
+        </button>
+      </p>
+      <!-- <textarea [(ngModel)]="configDisplay"></textarea> -->
+      <label for="speakRate">語音語速</label>
+      <input id="speakRate" type="range" [(ngModel)]="config.speakRate" min="0.5" max="2" value="1" step="0.1" />
+      <label for="speakVolume">語音聲量</label>
+      <input id="speakVolume" type="range" [(ngModel)]="config.speakVolume" min="1" max="10" value="10" />
+      <label for="speakTimes">播放次數</label>
+      <input id="speakTimes" type="range" [(ngModel)]="config.speakTimes" min="1" max="10" value="10" />
+      <label for="seeAnswerSpeak">看答案念句子</label>
+      <input id="seeAnswerSpeak" type="checkbox" [(ngModel)]="config.seeAnswerSpeak" />
+      <label for="autoUpdateLog">自動上傳遠端紀錄</label>
+      <input id="autoUpdateLog" type="checkbox" [(ngModel)]="config.autoUpdateLog" />
+      <label for="dayScore">答題日期加權分數</label>
+      <input id="dayScore" [(ngModel)]="config.dayScore" />
+      <label for="questionsScore">錯誤加權分數</label>
+      <input id="questionsScore" [(ngModel)]="config.questionsScore" />
+      <label for="prompt">提示詞</label>
+      <input id="prompt" [(ngModel)]="config.prompt" />
+      <label>抽籤模式</label>
+      <div class="drawMode">
+        <input [(ngModel)]="config.drawMode" id="errorFirst" type="radio" name="drawMode" value="errorFirst" />
+        <label for="errorFirst">錯誤優先</label>
+        <input [(ngModel)]="config.drawMode" id="completelyRandom" type="radio" name="drawMode"
+          value="completelyRandom" />
+        <label for="completelyRandom">完全隨機</label>
+        <input [(ngModel)]="config.drawMode" id="unfamiliarFirst" type="radio" name="drawMode"
+          value="unfamiliarFirst" />
+        <label for="unfamiliarFirst">沒看過優先</label>
+      </div>
+      <label for="unfamiliarSortingHours">排序無視時間 (-1 => 無, 0 = 無視 1 小時)</label>
+      <input id="unfamiliarSortingHours" type="number" [(ngModel)]="config.unfamiliarSortingHours" />
+      <label for="unfamiliarSortingMinutes">排序無視時間 (-1 => 無, 0 = 無視 1 分鐘)</label>
+      <input id="unfamiliarSortingMinutes" type="number" [(ngModel)]="config.unfamiliarSortingMinutes" />
+      <label for="autoDrawSeconds">自動抽取秒數</label>
+      <input id="autoDrawSeconds" type="number" [(ngModel)]="config.autoDrawSeconds" />
+      <button type="button" (click)="automaticDrawCard()">自動抽取</button>
+      <button class="unobviousBtn" (click)="resetAnswerScore()">清空紀錄</button>
+      <button class="unobviousBtn" (click)="clickImExport()">匯出匯入</button>
+      <div *ngIf="isExportAnswerScore" style="display: flex; flex-direction: column">
+        <textarea [(ngModel)]="answerScoreDisplay"></textarea>
+        <button class="unobviousBtn" (click)="importAnswerScore()">匯入</button>
+        <hr style="width: 95%" />
+      </div>
+      <div *ngIf="voices.length > 0">
+        <p>朗讀語言選擇</p>
+        <ul>
+          <li *ngFor="let voice of voices">
+            <input [(ngModel)]="config.speakSelectVoice" [value]="voice?.name" style="margin: 1rem;" [id]="voice?.name"
+              type="radio" name="speakSelectVoice" />
+            <label [for]="voice?.name">{{voice?.name}}</label>
+          </li>
+        </ul>
+      </div>
+      <p>鍵盤快捷鍵設定</p>
+      <label for="seeAnswer">看答案</label>
+      <input id="seeAnswer" [(ngModel)]="config.keyboardControl.seeAnswer" placeholder="seeAnswer" value="a" />
+      <label for="answerScoreResetTrue">會</label>
+      <input id="answerScoreResetTrue" [(ngModel)]="config.keyboardControl.answerScoreResetTrue"
+        placeholder="answerScoreResetTrue" value="s" />
+      <label for="answerScoreResetFalse">不會</label>
+      <input id="answerScoreResetFalse" [(ngModel)]="config.keyboardControl.answerScoreResetFalse"
+        placeholder="answerScoreResetFalse" value="d" />
+      <label for="drawSentence">更多例句</label>
+      <input id="drawSentence" [(ngModel)]="config.keyboardControl.drawSentence" placeholder="drawSentence" value="f" />
+      <label for="showExanpleAnswers">例句答案</label>
+      <input id="showExanpleAnswers" [(ngModel)]="config.keyboardControl.showExanpleAnswers"
+        placeholder="showExanpleAnswers" value="g" />
+      <label for="speakMsgWord">念單字</label>
+      <input id="speakMsgWord" [(ngModel)]="config.keyboardControl.speakMsgWord" placeholder="speakMsgWord" value="q" />
+      <label for="speakMsgSentence">念句子</label>
+      <input id="speakMsgSentence" [(ngModel)]="config.keyboardControl.speakMsgSentence" placeholder="speakMsgSentence"
+        value="w" />
+    </div>
+  </div>
+
+</div>
+
+<div class="login" [style.display]="firebaseAuth.isEnterRegistPage ? 'block' : 'none'">
+  <div style="display: flex;justify-content: center;">
+    <table class="familiarityTable">
+      <tbody>
+        <td></td>
+        <td data-th="未複習到">未複習到</td>
+        <td data-th="超不熟悉">超不熟悉</td>
+        <td data-th="不熟悉">不熟悉</td>
+        <td data-th="熟悉">熟悉</td>
+        <td data-th="超熟悉">超熟悉</td>
+      </tbody>
+      <tr>
+        <td>Online</td>
+        <!-- <td data-th="未複習到">{{tempFamiliarity.notReviewed}}</td>
+        <td data-th="超不熟悉">{{tempFamiliarity.veryUnfamiliar}}</td>
+        <td data-th="不熟悉">{{tempFamiliarity.unfamiliar}}</td>
+        <td data-th="熟悉">{{tempFamiliarity.familiar}}</td>
+        <td data-th="超熟悉">{{tempFamiliarity.veryFamiliar}}</td> -->
+      </tr>
+      <tr>
+        <td>Local</td>
+        <td data-th="未複習到">{{familiarity.notReviewed}}</td>
+        <td data-th="超不熟悉">{{familiarity.veryUnfamiliar}}</td>
+        <td data-th="不熟悉">{{familiarity.unfamiliar}}</td>
+        <td data-th="熟悉">{{familiarity.familiar}}</td>
+        <td data-th="超熟悉">{{familiarity.veryFamiliar}}</td>
+      </tr>
+    </table>
+  </div>
+  <div class="user" *ngIf="!(user$ | async);">
+    <input autocomplete="new-password" type="email" placeholder="email" [(ngModel)]="firebaseAuth.email" />
+    <input autocomplete="new-password" type="password" placeholder="password" [(ngModel)]="firebaseAuth.password" />
+  </div>
+  <p>
+    <span>
+      最後{{deviceCheckService.isMobile? '手機': '電腦'}}<ng-container
+        *ngIf="isLastUpdate() else isLastDownload">上傳</ng-container><ng-template #isLastDownload>下載</ng-template>
+    </span>, 最後上傳時間 {{this.lastUpdateLogTime}}, 最後下載時間 {{this.lastdownloadLogTime}}
+  </p>
+  <p class="info">
+    第一次使用請先註冊帳號，並將本地資料上傳即可更新榜單與使用下載服務
+  </p>
+  <div>
+    <ng-container *ngIf="(user$ | async); else unLogin">
+      <button (click)="updateLog()">上傳紀錄</button>
+      <button (click)="downloadLog()">下載紀錄</button>
+      <button (click)="logout()">登出</button>
+    </ng-container>
+    <ng-template #unLogin>
+      <button (click)="login()">登入</button>
+      <button (click)="signUp()">註冊</button>
+    </ng-template>
+    <button (click)="firebaseAuth.isEnterRegistPage = false">返回</button>
+  </div>
+</div>
+
+<div style="flex-direction: column; align-items: center"
+  [style.display]="editedCards.displayAddNewCard ? 'flex' : 'none'">
+  <label for="cn">cn</label>
+  <input autocomplete="off" type="text" id="cn" [(ngModel)]="editedCards?.card.cn[0]" />
+  <label for="en">en</label>
+  <input autocomplete="off" type="text" id="en" [(ngModel)]="editedCards.card.en" />
+  <label for="sentencesCn">sentences cn</label>
+  <input autocomplete="off" type="text" id="sentencesCn" [(ngModel)]="editedCards.card?.sentences[0].cn" />
+  <label for="sentencesEn">sentences en</label>
+  <input autocomplete="off" type="text" id="sentencesEn" [(ngModel)]="editedCards.card?.sentences[0].en" />
+  <div>
+    <button *ngIf="!editedCards.displayUpdateCnEdite" (click)="addNewCard()">
+      <span class="userCantSelect">新增</span>
+    </button>
+    <button *ngIf="editedCards.displayUpdateCnEdite" (click)="updateCnEdite(editedCards.card)">
+      <span class="userCantSelect">更新中文</span>
+    </button>
+    <button (click)="cancelAddNewCard()">
+      <span class="userCantSelect">取消</span>
+    </button>
+  </div>
+  <p>新卡片數量：{{editedCards.cards?.length}}</p>
+  <hr>
+  <button (click)="exportNewCards()">
+    <span class="userCantSelect">匯出新增卡片 {{editedCards.date}}</span>
+  </button>
+</div>
+
+<ul>
+  <li *ngFor="let type of vocabularyTypes; let i = index">
+    <label>
+      <input type="checkbox" [(ngModel)]="type.level1.selected" (change)="typesSelect(type.level1.en, $event)">
+      {{ type.level1.cn }}
+    </label>
+    <ng-container *ngIf="type.level1.selected">
+      <ul>
+        <li *ngFor="let lv2 of type.level2; let i = index" style="display:flex">
+          <label>
+            <input type="checkbox" [(ngModel)]="lv2.selected" (change)="typesSelect(lv2.en, $event)">
+            {{ lv2.en }}
+          </label>
+          <ng-container *ngIf="lv2.selected">
+            <li *ngFor="let lv3 of lv2.level3; let i = index">
+              <label>
+                <input type="checkbox" [(ngModel)]="lv3.selected" (change)="typesSelect(lv3.en, $event)">
+                {{ lv3.en }}
+              </label>
+            </li>
+          </ng-container>
+      </ul>
+    </ng-container>
+  </li>
+</ul>
