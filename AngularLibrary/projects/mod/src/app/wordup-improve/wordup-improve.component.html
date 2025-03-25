@@ -117,6 +117,17 @@
       </p>
 
       <div class="trackingInfo" *ngIf="trackingInfoSwitch">
+
+        <p>
+          <ng-container *ngIf="card.types.length > 0">{{card.types}}</ng-container>
+          <ng-container *ngIf="card.types.length <= 0">other</ng-container>
+        </p>
+
+        <select [(ngModel)]="selectedType">
+          <option *ngFor="let type of this.types" [value]="type.typeName">{{type.typeName}} ({{type.type.length}})
+          </option>
+        </select>
+
         <p class="subInfo userCantSelect">
           經過 {{ seconds }} 秒，未複習：{{this.familiarity.notReviewed}}
           <lib-svg [src]="'./assets/enHelper/audio.svg'" (click)="setSpeakSelection()"></lib-svg>
