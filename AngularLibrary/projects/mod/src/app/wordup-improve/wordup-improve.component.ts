@@ -347,8 +347,6 @@ export class WordupImproveComponent {
         positive: []
       });
 
-      console.log(preprocessCards)
-
       this.errorModeDisplay.recent = preprocessCards.recent.length;
       this.errorModeDisplay.remain = preprocessCards.remain.length;
       this.errorModeDisplay.notReviewed = preprocessCards.notReviewed.length;
@@ -970,7 +968,6 @@ export class WordupImproveComponent {
           cal: cal,
         });
       });
-
       let sortTemp = temp.sort((a: any, b: any) => b.cal - a.cal);
       this.searchWord.similarWords = `相似單字：${sortTemp
         .slice(0, 5)
