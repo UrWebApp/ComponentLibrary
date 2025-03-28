@@ -63,7 +63,7 @@ import { UrlSafePipe } from 'lib/feature/url-safe/url-safe.pipe';
       // Register the ServiceWorker as soon as the application is stable
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000',
-      // you already set this config
+      // you already set this config aa
     }),
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
