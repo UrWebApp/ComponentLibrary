@@ -149,7 +149,7 @@ lib-svg {
   &.NC {
     bottom: 6rem;
   }
-  
+
   &.BT {
     bottom: 1rem;
   }
@@ -251,5 +251,7 @@ lib-svg {
 
   .trackingInfo>* {
     font-size: 1.1rem;
+    max-width: 70%;
+    margin: auto;
   }
 }

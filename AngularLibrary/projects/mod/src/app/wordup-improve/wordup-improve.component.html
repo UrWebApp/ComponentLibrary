@@ -33,11 +33,12 @@
     <div *ngIf="card">
       <span class="subInfo userCantSelect">
         Score：{{ card.score }} (<span [ngSwitch]="errorModeDisplay.winningArray">
-          <ng-container *ngSwitchCase="'recent'">最近的:({{errorModeDisplay.recent}}),</ng-container>
-          <ng-container *ngSwitchCase="'remain'">remain:({{errorModeDisplay.remain}}),</ng-container>
-          <ng-container *ngSwitchCase="'notReviewed'">未審閱:({{errorModeDisplay.notReviewed}}),</ng-container>
-          <ng-container *ngSwitchCase="'maxNegativeScore'">最大負分:({{errorModeDisplay.maxNegativeScore +
-            1}}),</ng-container>
+          <ng-container *ngSwitchCase="'recent'">最近的:({{errorModeDisplay.recent}})</ng-container>
+          <ng-container *ngSwitchCase="'remain'">remain:({{errorModeDisplay.remain}})</ng-container>
+          <ng-container *ngSwitchCase="'notReviewed'">未審閱:({{errorModeDisplay.notReviewed}})</ng-container>
+          <ng-container
+            *ngSwitchCase="'maxNegativeScore'">最大負分:({{errorModeDisplay.maxNegativeScore+1}})
+          </ng-container>
           <ng-container *ngSwitchCase="'positive'">positive:({{errorModeDisplay.positive}})</ng-container>
           <ng-container *ngSwitchCase="'within1d'">within1d:({{errorModeDisplay.within1d}})</ng-container>
           <ng-container *ngSwitchCase="'within2d'">within2d:({{errorModeDisplay.within2d}})</ng-container>
@@ -45,7 +46,8 @@
           <ng-container *ngSwitchCase="'within14d'">within14d:({{errorModeDisplay.within14d}})</ng-container>
         </span>),
         <span>
-          {{ card.updateTime.days }} d / {{ card.updateTime.hours }} h /{{ card.updateTime.minutes }} m
+          {{ card.updateTime.days }} d / {{ card.updateTime.hours }} h /{{ card.updateTime.minutes }} m / 經過 {{ seconds
+          }} 秒
         </span>
       </span>
       <br>
@@ -93,7 +95,7 @@
             <lib-svg [src]="'./assets/enHelper/edit.svg'"
               (click)="editedCards.notEditMode = !editedCards.notEditMode"></lib-svg>
           </p>
-          <div style="display:flex;">
+          <div style="display:flex; max-width: 70%;margin: auto;">
             <details style="width: 50%;">
               <summary class="subInfo userCantSelect" style="cursor: pointer;">英文相似單字</summary>
               <ul *ngFor="let i of this.findSameWordsObj.en">
@@ -119,17 +121,12 @@
       <div class="trackingInfo" *ngIf="trackingInfoSwitch">
 
         <p>
-          <ng-container *ngIf="card.types.length > 0">{{card.types}}</ng-container>
+          <ng-container *ngIf="card.types.length > 0">{{card.types | json}}</ng-container>
           <ng-container *ngIf="card.types.length <= 0">other</ng-container>
         </p>
 
-        <select [(ngModel)]="selectedType">
-          <option *ngFor="let type of this.types" [value]="type.typeName">{{type.typeName}} ({{type.type.length}})
-          </option>
-        </select>
-
         <p class="subInfo userCantSelect">
-          經過 {{ seconds }} 秒，未複習：{{this.familiarity.notReviewed}}
+          未複習：{{this.familiarity.notReviewed}}
           <lib-svg [src]="'./assets/enHelper/audio.svg'" (click)="setSpeakSelection()"></lib-svg>
         </p>
         <p class="subInfo userCantSelect" *ngIf="this.record?.avgAnswerSpeed?.length > 0">
@@ -171,7 +168,7 @@
 
       <hr />
 
-      <div>
+      <div style="max-width: 70%;margin: auto;">
         <input autocomplete="new-password" type="text" [(ngModel)]="searchWord.word" #searchWordInput
           (click)="keyboardControl = false" />
         <button (click)="searchWordMark()">
@@ -593,7 +590,7 @@
     </label>
     <ng-container *ngIf="type.level1.selected">
       <ul>
-        <li *ngFor="let lv2 of type.level2; let i = index" style="display:flex">
+        <li *ngFor="let lv2 of type.level2; let i = index">
           <label>
             <input type="checkbox" [(ngModel)]="lv2.selected" (change)="typesSelect(lv2.en, $event)">
             {{ lv2.en }}

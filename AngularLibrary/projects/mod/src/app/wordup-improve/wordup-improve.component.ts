@@ -230,8 +230,9 @@ export class WordupImproveComponent {
 
           this.configInit();
           this.editedCardsInit();
-
-          this.calculateTypes();
+          this.cardslinkScore();
+          this.ieltsInfoManagement();
+          this.unfamiliarReflash();
         })
       )
       .subscribe((res: any) => {
@@ -254,7 +255,7 @@ export class WordupImproveComponent {
     // const sum = negativeScores?.reduce((total: number, item: any) => total + item.score, 0);
     // this.answerScoreAverage = Math.floor(sum / negativeScores?.length);
 
-    this.cardslinkScore();
+    // this.cardslinkScore();
     const negativeScores = this.cards?.filter((item: any) => item.score < 0);
     if (negativeScores.length > 0) {
       const sum = negativeScores.reduce((total: number, item: any) => total + item.score, 0);
@@ -275,17 +276,17 @@ export class WordupImproveComponent {
   */
   cardslinkScore(): void {
     // 檢查 answerScore
-    this.answerScore.forEach((s: any) => {
-      if (!this.cards.find(c => c.en === s.en)) {
-        let c = this.cards.find(c => c.en.toLowerCase() === s.en.toLowerCase());
-        if (c) {
-          // console.log('c', c);
-          // console.log('s', s);
-        } else {
-          // console.log(`answerScore.${s.en} 在 cards 找不到`)
-        }
-      }
-    });
+    // this.answerScore.forEach((s: any) => {
+    //   if (!this.cards.find(c => c.en === s.en)) {
+    //     let c = this.cards.find(c => c.en.toLowerCase() === s.en.toLowerCase());
+    //     if (c) {
+    //       // console.log('c', c);
+    //       // console.log('s', s);
+    //     } else {
+    //       // console.log(`answerScore.${s.en} 在 cards 找不到`)
+    //     }
+    //   }
+    // });
 
     this.cards.forEach((card: Card) => {
       let findAnswer = this.answerScore?.find(
@@ -303,9 +304,7 @@ export class WordupImproveComponent {
   * 根據邏輯抽取卡片資料
   */
   drawCard(): void {
-
     this.calculateAverageNegativeScore();
-
     // 錯誤優先模式
     if (this.config.drawMode === 'errorFirst') {
 
@@ -537,7 +536,9 @@ export class WordupImproveComponent {
 
       // 累積分數超過臨界值則得獎
       if (
-        (thresholdScore <= cumulativeScore && this.cards[drawNumber]?.en.toLowerCase() !== this.card?.en.toLowerCase()) || this.config.drawMode === 'errorFirst' || this.config.drawMode === 'unfamiliarFirst'
+        (thresholdScore <= cumulativeScore && this.cards[drawNumber]?.en.toLowerCase() !== this.card?.en.toLowerCase())
+        || this.config.drawMode === 'errorFirst'
+        || this.config.drawMode === 'unfamiliarFirst'
       ) {
         this.card = JSON.parse(JSON.stringify(this.cards[drawNumber]));
         this.card.score = answerInfo?.score;
@@ -721,7 +722,7 @@ export class WordupImproveComponent {
     this.record.avgAnswerSpeed.push(this.seconds);
 
     let word = this.answerScore.find((w: any) => w.en.toLowerCase() == this.card.en.toLowerCase());
-
+    let card = this.cards.find(c => c.en.toLowerCase() == this.card.en.toLowerCase());
     // 回答的越快增加越多分，越慢扣越多
     if (word) {
       // 30 內天類依比例扣分 7-15 天扣最低，7 天內與 15 至其餘天數 & 一天以內直接扣最大分
@@ -745,6 +746,10 @@ export class WordupImproveComponent {
         score: newWord,
         updateTime: Date.now(),
       });
+    }
+
+    if (card) {
+      card.updateTime = this.calculateTime(Date.now());
     }
 
     localStorage.setItem('answerScore', JSON.stringify(this.answerScore));
@@ -961,19 +966,18 @@ export class WordupImproveComponent {
           cal: cal,
         });
       });
-
+      console.log('cc')
       let sortTemp = temp.sort((a: any, b: any) => b.cal - a.cal);
       this.searchWord.similarWords = `相似單字：${sortTemp
         .slice(0, 5)
         .map((obj: any) => `[${obj.en.toLowerCase()}]${obj.cn}`)
         .join('，')}`;
-
       const exactPattern = new RegExp(`^${this.searchWord.word}$`, "i"); // 完全匹配
       const loosePattern = new RegExp(`^${this.searchWord.word}-`, "i"); // 允許 - 但優先完全匹配
 
       let searched = this.cards.find((item) => exactPattern.test(item.en.toLowerCase()))
         || this.cards.find((item) => loosePattern.test(item.en.toLowerCase()));
-
+      console.log('cc')
       if (searched) {
         let word = this.answerScore.find((w: any) =>
           // word.en.toLowerCase().match(pattern)
@@ -999,6 +1003,8 @@ export class WordupImproveComponent {
           this.searchWord.updateTime = this.calculateTime(undefined);
         }
 
+        searched.updateTime = this.calculateTime(Date.now());
+
         this.openIframe('https://www.google.com/search?sca_esv=1ddba70af590f790&sca_upv=1&igu=1&q=', '&udm=2&fbs=AEQNm0DVrIRjdA3gRKfJJ-deMT8ZtYOjoIt1NWOMRkEKym4u5PkAZgxJOmIgPx6WieMhF6q1Hq7W6nME2Vp0eHuijF3ZElaTgD0zbj1gkQrti2r6HpgEQJ__FI2P2zVbzOTQnx-xQGuWfPA7_LjHL8X54xCjPigLtLX638JLYGhCvRlpvvGBo-fNpc7q_rU8dgffCadMYeMgxPqmupqDpgcFpVxKo2EBMA&sa=X&ved=2ahUKEwj91ZGlkuCIAxU4cPUHHd29CMAQtKgLegQIEhAB&biw=1920&bih=919&dpr=1');
 
         localStorage.setItem('answerScore', JSON.stringify(this.answerScore));
@@ -1016,7 +1022,7 @@ export class WordupImproveComponent {
       }
 
       this.debounceBeSub$?.next([this.speak, this.searchWord.display ?? this.searchWord.word]);
-      this.unfamiliarReflash();
+      // this.unfamiliarReflash();
     }
     this.commonService.goToAnchor(this.copySelectedDOM);
   }
@@ -1584,30 +1590,33 @@ export class WordupImproveComponent {
     window.open('https://chatgpt.com/', '_blank');
   }
 
-  types: any = [];
-  selectedType: string = 'other';
+  grammar = {};
+  vocabularyTypes: any = [];
+  grammarUrl = './assets/enHelper/grammar.json';
+  typesUrl = './assets/enHelper/types.json';
 
-  calculateTypes() {
-
-    let temp: string[] = [];
-    this.cards.forEach(c => {
-      if (!c.types) {
-        c.types = [];
-      }
-      temp = [...temp, ...c.types];
+  ieltsInfoManagement() {
+    forkJoin({
+      grammar: this.httpClient.get<any>(this.grammarUrl),
+      vocabularyTypes: this.httpClient.get<any>(this.typesUrl)
     })
-    temp = [...new Set(temp)];
+      .pipe(
+        tap(({ grammar, vocabularyTypes }) => {
+          this.grammar = grammar;
+          this.vocabularyTypes = vocabularyTypes;
+        })
+      )
+      .subscribe(() => { });
+  }
 
-    temp.forEach(t => {
-      const type = this.cards.filter(c => c.types.indexOf(t) != -1);
-      if (type) {
-        this.types.push({ typeName: t, type: type });
-      }
-    });
-
-    const noType = this.cards.filter(c => c.types.length < 1);
-    this.types.push({ typeName: 'other', type: noType });
-    this.types.push({ typeName: 'all', type: this.cards });
+  typesSelected: string[] = [];
+  typesSelect(type: string, event: any) {
+    if (event.target.checked) {
+      this.typesSelected.push(type);
+    } else {
+      this.typesSelected = this.typesSelected.filter(t => t !== type);
+    }
+    console.log(this.typesSelected)
   }
 
   /**
@@ -1710,7 +1719,7 @@ export class WordupImproveComponent {
             this.lastdownloadLogTime = this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss') ?? '';
 
             this.calculateFamiliarity();
-            this.unfamiliarReflash();
+            // this.unfamiliarReflash();
             alert('更新成功');
             this.refreshCnEdited();
             this.firebaseAuth.isEnterRegistPage = false;
@@ -1722,37 +1731,6 @@ export class WordupImproveComponent {
         take(1),
       ).subscribe(() => this.commonService.loadingOff());
     }
-  }
-
-
-  grammar = {};
-  vocabularyTypes: any = [];
-  grammarUrl = './assets/enHelper/grammar.json';
-  typesUrl = './assets/enHelper/types.json';
-
-  ieltsInfoManagement() {
-    forkJoin({
-      grammar: this.httpClient.get<any>(this.grammarUrl),
-      vocabularyTypes: this.httpClient.get<any>(this.typesUrl)
-    })
-      .pipe(
-        tap(({ grammar, vocabularyTypes }) => {
-          this.grammar = grammar;
-          this.vocabularyTypes = vocabularyTypes;
-          console.log(this.vocabularyTypes)
-        })
-      )
-      .subscribe(() => { });
-  }
-
-  typesSelected: string[] = [];
-  typesSelect(type: string, event: any) {
-    if (event.target.checked) {
-      this.typesSelected.push(type);
-    } else {
-      this.typesSelected = this.typesSelected.filter(t => t !== type);
-    }
-    console.log(this.typesSelected)
   }
 }
 
