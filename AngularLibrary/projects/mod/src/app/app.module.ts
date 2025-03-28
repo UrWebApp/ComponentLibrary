@@ -1,9 +1,9 @@
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule, isDevMode } from '@angular/core';
+import { APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, NgModule, isDevMode } from '@angular/core';
 
 import { SuperMenuComponent } from './super-menu/super-menu.component';
 
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -18,13 +18,26 @@ import { HighlightPipeModule } from "../../../lib/feature/highlight/highlight.mo
 
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
-import { environment } from '../environments/environment';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { PalWorldMapLeafletComponent } from './pal-world-map-leaflet/pal-world-map-leaflet.component';
 import { HomeComponent } from './home/home.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { DatePipe } from '@angular/common';
 import { UrlSafePipe } from 'lib/feature/url-safe/url-safe.pipe';
+
+import { InjectionToken } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+export const CONFIG = new InjectionToken<any>('config');
+export function loadConfig(http: HttpClient, configHolder: { config?: any }) {
+  return () => firstValueFrom(http.get('/assets/config.json')).then((config) => {
+    configHolder.config = config;
+  });
+}
+const configHolder: { config?: any } = {};
+const CONFIG_HOLDER = new InjectionToken<{ config?: any }>('CONFIG_HOLDER', {
+  providedIn: 'root',
+  factory: () => configHolder,
+});
 
 // https://stackoverflow.com/questions/60726180/angular-9-value-at-position-x-in-the-ngmodule-imports-is-not-a-reference  reload  vscode
 @NgModule({
@@ -42,13 +55,19 @@ import { UrlSafePipe } from 'lib/feature/url-safe/url-safe.pipe';
   providers: [
     DatePipe,
     UrlSafePipe,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: loadConfig,
+      deps: [HttpClient, CONFIG_HOLDER],
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent],
   imports: [
     BrowserModule,
     HttpClientModule,
     AppRoutingModule,
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
+    provideFirebaseApp(() => initializeApp(configHolder.config.firebase)),
     provideFirestore(() => getFirestore()),
     provideAuth(() => getAuth()),
     FormsModule,
