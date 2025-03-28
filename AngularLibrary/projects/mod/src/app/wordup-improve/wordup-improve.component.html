@@ -36,8 +36,7 @@
           <ng-container *ngSwitchCase="'recent'">最近的:({{errorModeDisplay.recent}})</ng-container>
           <ng-container *ngSwitchCase="'remain'">remain:({{errorModeDisplay.remain}})</ng-container>
           <ng-container *ngSwitchCase="'notReviewed'">未審閱:({{errorModeDisplay.notReviewed}})</ng-container>
-          <ng-container
-            *ngSwitchCase="'maxNegativeScore'">最大負分:({{errorModeDisplay.maxNegativeScore+1}})
+          <ng-container *ngSwitchCase="'maxNegativeScore'">最大負分:({{errorModeDisplay.maxNegativeScore+1}})
           </ng-container>
           <ng-container *ngSwitchCase="'positive'">positive:({{errorModeDisplay.positive}})</ng-container>
           <ng-container *ngSwitchCase="'within1d'">within1d:({{errorModeDisplay.within1d}})</ng-container>
@@ -45,11 +44,11 @@
           <ng-container *ngSwitchCase="'within7d'">within7d:({{errorModeDisplay.within7d}})</ng-container>
           <ng-container *ngSwitchCase="'within14d'">within14d:({{errorModeDisplay.within14d}})</ng-container>
         </span>),
-        <span>
-          {{ card.updateTime.days }} d / {{ card.updateTime.hours }} h /{{ card.updateTime.minutes }} m / 經過 {{ seconds
-          }} 秒
-        </span>
       </span>
+      <span>
+        {{ card.updateTime.days }} d / {{ card.updateTime.hours }} h /{{ card.updateTime.minutes }} m,
+      </span>
+      <span>經過 {{ seconds }} 秒</span>
       <br>
       <span>
         (單)
@@ -95,7 +94,7 @@
             <lib-svg [src]="'./assets/enHelper/edit.svg'"
               (click)="editedCards.notEditMode = !editedCards.notEditMode"></lib-svg>
           </p>
-          <div style="display:flex; max-width: 70%;margin: auto;">
+          <div style="display:flex; max-width: 90%;margin: auto;">
             <details style="width: 50%;">
               <summary class="subInfo userCantSelect" style="cursor: pointer;">英文相似單字</summary>
               <ul *ngFor="let i of this.findSameWordsObj.en">
@@ -168,7 +167,7 @@
 
       <hr />
 
-      <div style="max-width: 70%;margin: auto;">
+      <div style="max-width: 90%;margin: auto;">
         <input autocomplete="new-password" type="text" [(ngModel)]="searchWord.word" #searchWordInput
           (click)="keyboardControl = false" />
         <button (click)="searchWordMark()">
@@ -197,7 +196,7 @@
         </p>
         <hr *ngIf="searchWord?.similarWords" />
         <p style="max-width:70rem;">{{ searchWord?.similarWords }}</p>
-        <div class="button-container">
+        <!-- <div class="button-container">
           <button (click)="openBlankUrl('https://dictionary.cambridge.org/dictionary/english-chinese-traditional/')">
             <span class="userCantSelect">劍橋</span>
           </button>
@@ -211,13 +210,13 @@
           <button (click)="copySelectedText('如何記憶單字')">
             <span class="userCantSelect">如何記憶</span>
           </button>
-          <!-- <button (click)="additionalFeatures('https://www.google.com/search?igu=1&?igu=1&q=Synonyms+')">
+          <button (click)="additionalFeatures('https://www.google.com/search?igu=1&?igu=1&q=Synonyms+')">
             <span class="userCantSelect">同義詞 Synonyms</span>
           </button>
           <button (click)="additionalFeatures('https://www.google.com/search?igu=1&?q=Antonyms+')">
             <span class="userCantSelect">反義詞 Antonyms</span>
-          </button> -->
-        </div>
+          </button>
+        </div> -->
       </div>
     </div>
   </div>

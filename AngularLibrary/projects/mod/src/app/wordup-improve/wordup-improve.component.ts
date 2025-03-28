@@ -347,8 +347,6 @@ export class WordupImproveComponent {
         positive: []
       });
 
-      console.log(preprocessCards)
-
       this.errorModeDisplay.recent = preprocessCards.recent.length;
       this.errorModeDisplay.remain = preprocessCards.remain.length;
       this.errorModeDisplay.notReviewed = preprocessCards.notReviewed.length;
@@ -757,7 +755,7 @@ export class WordupImproveComponent {
     card.updateTime = this.calculateTime(Date.now());
 
     localStorage.setItem('answerScore', JSON.stringify(this.answerScore));
-    this.calculateAnswerCountToday(word?.en);
+    this.calculateAnswerCountToday(card?.en);
     this.drawCard();
   }
 
