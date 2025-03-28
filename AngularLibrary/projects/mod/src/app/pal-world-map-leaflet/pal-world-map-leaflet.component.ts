@@ -1,8 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import * as L from 'leaflet';
-import { BehaviorSubject, combineLatest, filter, map, take, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { BehaviorSubject, combineLatest, filter, map, switchMap, take, tap } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
 import { DeviceCheckService } from 'lib/public-api';
 
@@ -60,21 +59,26 @@ export class PalWorldMapLeafletComponent {
       });
     // serversList
     // https://hsuan9522.medium.com/google-sheet-v4-api-efdec9a96bf3
+
     this.httpClient
-      .get(
-        `https://sheets.googleapis.com/v4/spreadsheets/${environment?.googleSheet?.spreadsheetId}/values/ServicesList?key=${environment?.googleSheet?.apiKey}`
-      )
-      .pipe(take(1))
-      .subscribe((serversForm: any) => {
+      .get<any>('/assets/config.json')
+      .pipe(
+        take(1),
+        switchMap((environment) =>
+          this.httpClient.get(
+            `https://sheets.googleapis.com/v4/spreadsheets/${environment.googleSheet.spreadsheetId}/values/ServicesList?key=${environment.googleSheet.apiKey}`
+          )
+        ),
+        take(1)
+      ).subscribe((serversForm: any) => {
         let arrString = '[';
         try {
           let header = serversForm?.values.shift();
           for (let i = 0; i < serversForm?.values?.length; i++) {
             let objString = '{';
             for (let j = 0; j < header?.length; j++) {
-              objString += `"${header[j]}": "${
-                serversForm?.values[i][j].replace(/\n/g, '<br>') ?? ''
-              }"`;
+              objString += `"${header[j]}": "${serversForm?.values[i][j].replace(/\n/g, '<br>') ?? ''
+                }"`;
               if (j !== header?.length - 1) {
                 objString += ',';
               }
@@ -103,7 +107,7 @@ export class PalWorldMapLeafletComponent {
     this.onMouseClick();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   // private initRealMap(): void {
   //   const baseMapURl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
