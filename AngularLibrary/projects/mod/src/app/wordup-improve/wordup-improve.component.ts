@@ -722,7 +722,7 @@ export class WordupImproveComponent {
     this.record.avgAnswerSpeed.push(this.seconds);
 
     let word = this.answerScore.find((w: any) => w.en.toLowerCase() == this.card.en.toLowerCase());
-    let card: any = this.cards.find(c => c.en.toLowerCase() == this.card.en.toLowerCase());
+    let card = this.cards.find(c => c.en.toLowerCase() == this.card.en.toLowerCase());
     // 回答的越快增加越多分，越慢扣越多
     if (word) {
       // 30 內天類依比例扣分 7-15 天扣最低，7 天內與 15 至其餘天數 & 一天以內直接扣最大分
@@ -730,13 +730,10 @@ export class WordupImproveComponent {
 
       if (answer) {
         word.score += this.familiarScore;
-        card.score += this.familiarScore;
       } else {
         word.score += this.notFamiliarScore;
-        card.score += this.notFamiliarScore;
         if (this.maxNegativeScore < -50 || word.score < this.maxNegativeScore || this.card.updateTime.days > 7) {
           word.score = this.maxNegativeScore;
-          card.score = this.maxNegativeScore;
         }
       }
 
@@ -749,10 +746,11 @@ export class WordupImproveComponent {
         score: newWord,
         updateTime: Date.now(),
       });
-      card.score = newWord;
     }
 
-    card.updateTime = this.calculateTime(Date.now());
+    if (card) {
+      card.updateTime = this.calculateTime(Date.now());
+    }
 
     localStorage.setItem('answerScore', JSON.stringify(this.answerScore));
     this.calculateAnswerCountToday(word?.en);
@@ -989,10 +987,8 @@ export class WordupImproveComponent {
           this.searchWord.notFamiliarScore = this.notFamiliarScoreCalculations(word);
           const time = this.calculateTime(word?.updateTime);
           word.score += this.searchWord.notFamiliarScore > 0 ? this.searchWord.notFamiliarScore * -1 : this.searchWord.notFamiliarScore;
-          searched.score += this.searchWord.notFamiliarScore > 0 ? this.searchWord.notFamiliarScore * -1 : this.searchWord.notFamiliarScore;
           if (this.maxNegativeScore < -50 || word.score < this.maxNegativeScore || this.card.updateTime.days > 7) {
             word.score = this.maxNegativeScore;
-            searched.score = this.maxNegativeScore;
           }
           this.searchWord.updateTime = time;
           word.updateTime = Date.now();
@@ -1004,8 +1000,6 @@ export class WordupImproveComponent {
           });
           this.searchWord.score = (this.maxNegativeScore ?? -50);
           this.searchWord.updateTime = this.calculateTime(undefined);
-
-          searched.score = (this.maxNegativeScore ?? -50);
         }
 
         searched.updateTime = this.calculateTime(Date.now());
