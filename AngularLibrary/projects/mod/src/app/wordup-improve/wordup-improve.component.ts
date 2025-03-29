@@ -1674,8 +1674,8 @@ export class WordupImproveComponent {
 
   async updateLog(direct: boolean = false): Promise<void> {
     if (direct || confirm('確定要更新雲端紀錄嗎？(此動作不可逆)')) {
+      this.commonService.loadingOn();
       user(this.auth).pipe(
-        tap(() => this.commonService.loadingOn()),
         delay(1),
         take(1),
         tap(async (user) => {
@@ -1692,22 +1692,23 @@ export class WordupImproveComponent {
               editedCardsDate: this.editedCards?.date,
             });
             alert('更新成功');
+            this.commonService.loadingOff();
             this.refreshCnEdited();
             this.firebaseAuth.isEnterRegistPage = false;
           }
         }),
         take(1),
-      ).subscribe(() => this.commonService.loadingOff());
+      ).subscribe();
     }
   }
 
   downloadLog(direct: boolean = false): void {
     if (direct || confirm('確定要更新本地紀錄嗎？(此動作不可逆)')) {
+      this.commonService.loadingOn();
       this.combineUserAndLogs$ = combineLatest([
         this.user$,
         collectionData(collection(this.firestore, 'Logs'))
       ]).pipe(
-        tap(() => this.commonService.loadingOn()),
         delay(1),
         take(1),
         tap(async ([user, logs]) => {
@@ -1727,6 +1728,7 @@ export class WordupImproveComponent {
             this.calculateFamiliarity();
             // this.unfamiliarReflash();
             alert('更新成功');
+            this.commonService.loadingOff();
             this.refreshCnEdited();
             this.firebaseAuth.isEnterRegistPage = false;
             this.drawCard();
@@ -1735,7 +1737,7 @@ export class WordupImproveComponent {
           }
         }),
         take(1),
-      ).subscribe(() => this.commonService.loadingOff());
+      ).subscribe();
     }
   }
 }

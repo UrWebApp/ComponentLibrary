@@ -167,7 +167,7 @@
 
       <hr />
 
-      <div style="max-width: 90%;margin: auto;">
+      <div style="width:90vw">
         <input autocomplete="new-password" type="text" [(ngModel)]="searchWord.word" #searchWordInput
           (click)="keyboardControl = false" />
         <button (click)="searchWordMark()">
@@ -195,7 +195,7 @@
           </span>
         </p>
         <hr *ngIf="searchWord?.similarWords" />
-        <p style="max-width:70rem;">{{ searchWord?.similarWords }}</p>
+        <p>{{ searchWord?.similarWords }}</p>
         <!-- <div class="button-container">
           <button (click)="openBlankUrl('https://dictionary.cambridge.org/dictionary/english-chinese-traditional/')">
             <span class="userCantSelect">劍橋</span>
