@@ -117,7 +117,7 @@
         <ng-container *ngIf="trackingInfoSwitch">⬆ ⬆ trackingInfo ⬆ ⬆</ng-container>
       </p>
 
-      <div class="trackingInfo" *ngIf="trackingInfoSwitch">
+      <div style="width:90vw" *ngIf="trackingInfoSwitch">
 
         <p>
           <ng-container *ngIf="card.types.length > 0">{{card.types | json}}</ng-container>
@@ -138,7 +138,7 @@
         <p class="subInfo userCantSelect">
           (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7)}})
         </p>
-        <p>
+        <p class="subInfo userCantSelect">
           <span>Score：{{ card.score }} {{maxNegativeScoreIndex + 1}}</span>
           <span>winningArray:({{errorModeDisplay.winningArray}}),</span>
           <span>recent:({{errorModeDisplay.recent}}),</span>
@@ -430,8 +430,8 @@
       <input id="speakTimes" type="range" [(ngModel)]="config.speakTimes" min="1" max="10" value="10" />
       <label for="seeAnswerSpeak">看答案念句子</label>
       <input id="seeAnswerSpeak" type="checkbox" [(ngModel)]="config.seeAnswerSpeak" />
-      <label for="autoUpdateLog">自動上傳遠端紀錄</label>
-      <input id="autoUpdateLog" type="checkbox" [(ngModel)]="config.autoUpdateLog" />
+      <!-- <label for="autoUpdateLog">自動上傳遠端紀錄</label>
+      <input id="autoUpdateLog" type="checkbox" [(ngModel)]="config.autoUpdateLog" /> -->
       <label for="dayScore">答題日期加權分數</label>
       <input id="dayScore" [(ngModel)]="config.dayScore" />
       <label for="questionsScore">錯誤加權分數</label>
@@ -492,6 +492,17 @@
       <label for="speakMsgSentence">念句子</label>
       <input id="speakMsgSentence" [(ngModel)]="config.keyboardControl.speakMsgSentence" placeholder="speakMsgSentence"
         value="w" />
+      <button class="unobviousBtn" (click)="deleteRepeatAnswerScore()">
+        刪除重複答案分數
+      </button>
+      <div style="display: flex; flex-direction: column; align-items: center">
+        <label for="researchAnswerScore">查詢錯誤紀錄</label>
+        <input id="researchAnswerScore" [(ngModel)]="researchAnswerScoreEn" placeholder="speakMsgWord" />
+        <button class="unobviousBtn" (click)="researchAnswerScore()">
+          查詢錯誤紀錄
+        </button>
+        <p>{{researchedAnswerScore|json}}</p>
+      </div>
     </div>
   </div>
 
@@ -565,10 +576,13 @@
   <input autocomplete="off" type="text" id="sentencesEn" [(ngModel)]="editedCards.card?.sentences[0].en" />
   <div>
     <button *ngIf="!editedCards.displayUpdateCnEdite" (click)="addNewCard()">
-      <span class="userCantSelect">新增</span>
+      <span class="userCantSelect">新增單字卡</span>
     </button>
     <button *ngIf="editedCards.displayUpdateCnEdite" (click)="updateCnEdite(editedCards.card)">
       <span class="userCantSelect">更新中文</span>
+    </button>
+    <button *ngIf="editedCards.displayUpdateCnEdite" (click)="addNewSentences()">
+      <span class="userCantSelect">新增句子</span>
     </button>
     <button (click)="cancelAddNewCard()">
       <span class="userCantSelect">取消</span>

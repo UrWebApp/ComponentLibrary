@@ -271,22 +271,15 @@ export class WordupImproveComponent {
     // }, {});
   }
 
+  repeatAnswerScore: string[] = [];
+
   /**
   * 將卡片資料與分數資料關聯，cards 資料太大包，是固定 json 檔案，搭配 firebase 上記錄分數的檔案
   */
   cardslinkScore(): void {
-    // 檢查 answerScore
-    // this.answerScore.forEach((s: any) => {
-    //   if (!this.cards.find(c => c.en === s.en)) {
-    //     let c = this.cards.find(c => c.en.toLowerCase() === s.en.toLowerCase());
-    //     if (c) {
-    //       // console.log('c', c);
-    //       // console.log('s', s);
-    //     } else {
-    //       // console.log(`answerScore.${s.en} 在 cards 找不到`)
-    //     }
-    //   }
-    // });
+    if (isDevMode()) {
+      this.checkAnswerScore();
+    }
 
     this.cards.forEach((card: Card) => {
       let findAnswer = this.answerScore?.find(
@@ -297,6 +290,63 @@ export class WordupImproveComponent {
     });
   }
 
+  checkAnswerScore() {
+    // 檢查 answerScore
+    this.answerScore.forEach((s: any) => {
+      if (!this.cards.find(c => c.en == s.en)) {
+        let c = this.cards.find(c => c.en.toLowerCase() == s.en.toLowerCase());
+        if (c) {
+          // console.log('c', c);
+          // console.log('s', s);
+        } else {
+          console.log(`answerScore.${s.en} 在 cards 找不到`);
+          this.repeatAnswerScore.push(s.en);
+        }
+      }
+    });
+
+    let words = this.cards.map(card => card.en);
+    const duplicates = words.filter((item, index) => words.indexOf(item) !== index);
+    const uniqueDuplicates = [...new Set(duplicates)];
+    if (uniqueDuplicates.length > 0) {
+      console.log('重複', uniqueDuplicates)
+    }
+  }
+
+  deleteRepeatAnswerScore() {
+    this.answerScore = this.answerScore.filter((a: any) => !this.repeatAnswerScore.includes(a.en));
+    localStorage.setItem('answerScore', JSON.stringify(this.answerScore));
+    this.checkAnswerScore();
+  }
+
+  researchedAnswerScore = {};
+  researchAnswerScoreEn: string = '';
+  researchAnswerScore() {
+    this.researchedAnswerScore = this.answerScore.find((a: any) => a.en.toLowerCase().replace(/\s*/g, '') == this.researchAnswerScoreEn.toLowerCase().replace(/\s*/g, ''));
+  }
+
+  getSynonymsWithTranslation() {
+    this.httpClient.get('https://api.datamuse.com/words', { params: { rel_syn: this.card.en } })
+      .pipe(
+        switchMap((synonyms: any) => {
+          const translationRequests = synonyms.map((syn: any) =>
+            this.httpClient.post('https://libretranslate.com/translate', {
+              q: syn.word,
+              source: 'en',
+              target: 'zh',
+              format: 'text'
+            }).pipe(switchMap((res: any) => {
+              syn.translation = res.translatedText;
+              return [syn];
+            }))
+          );
+          // console.log(synonyms)
+          // return synonyms;
+          return forkJoin(translationRequests);
+        })
+      ).subscribe(res => { console.log(res) });
+  }
+
   debug: any;
   card: Card = new Card();
   test = '';
@@ -304,6 +354,7 @@ export class WordupImproveComponent {
   * 根據邏輯抽取卡片資料
   */
   drawCard(): void {
+
     this.calculateAverageNegativeScore();
     // 錯誤優先模式
     if (this.config.drawMode === 'errorFirst') {
@@ -1353,7 +1404,10 @@ export class WordupImproveComponent {
   }
 
 
-  editedCards: any = { date: '', cards: [], card: new Card(), notEditMode: true, displayAddNewCard: false, displayUpdateCnEdite: false };
+  editedCards: any = {
+    date: '', cards: [], card: new Card(),
+    notEditMode: true, displayAddNewCard: false, displayUpdateCnEdite: false
+  };
   /**
   * 修改單字資料初始化
   */
@@ -1363,6 +1417,7 @@ export class WordupImproveComponent {
       this.editedCards = JSON.parse(temp);
     }
 
+    this.editedCards.displayUpdateCnEdite = false;
     this.editedCards.displayAddNewCard = false;
     this.editedCards.card = new Card();
     this.editedCards.notEditMode = true;
@@ -1407,6 +1462,9 @@ export class WordupImproveComponent {
         let tempCard = this.cards.find((card: any) => card.en.toLowerCase() === editedCard.en.toLowerCase());
         if (tempCard) {
           tempCard.cn = editedCard.cn;
+          if (editedCard.sentences.length > 0) {
+            tempCard.sentences = tempCard.sentences.concat(editedCard.sentences.filter((s: any) => s.en != ''));
+          }
         } else {
           this.cards.push(editedCard);
         }
@@ -1456,6 +1514,37 @@ export class WordupImproveComponent {
     }
   }
 
+  addNewSentences() {
+    const { en, sentences } = this.editedCards.card;
+    const tempCard = this.cards.find((card: any) => card.en.trim().toLowerCase() === en.trim().toLowerCase());
+    const tempeditedCard = this.editedCards.cards.find((card: any) => card.en.trim().toLowerCase() === en.trim().toLowerCase());
+
+    if (!tempCard) {
+      return alert('找不到單字請新增單字');
+    } else {
+      if (confirm('確定要新增句子嗎？')) {
+        if (!sentences[0]?.en || !sentences[0]?.cn) {
+          alert('請確定更新或新增欄位');
+        } else {
+          if (tempeditedCard) {
+
+            tempeditedCard.sentences = tempeditedCard.sentences.filter((s: any) => s.en != '');
+            tempeditedCard.sentences.push({
+              en: sentences[0]?.en,
+              cn: sentences[0]?.cn
+            });
+          }
+
+          let editedCards = JSON.stringify(this.editedCards);
+          localStorage.setItem('editedCards', editedCards);
+          this.editedCards.card = new Card();
+          this.editedCards.displayUpdateCnEdite = false;
+          this.refreshCnEdited();
+        }
+      }
+    }
+  }
+
   /**
   * 關閉新增單字介面
   */
@@ -1473,9 +1562,10 @@ export class WordupImproveComponent {
       const seenWords = new Set();
       let securityKey = true;
       let repeatCards: any = [];
+
       const tempCards = this.cards.map(({ cn, en, sentences, types }) => {
         if (!seenWords.has(en)) {
-          seenWords.add(en.replace(/\s+/g, ""));
+          seenWords.add(en);
 
           let newCn = Array.from(new Set(cn.join(",")
             .replace(/，|；|;/g, ",")
@@ -1485,7 +1575,7 @@ export class WordupImproveComponent {
 
           return {
             cn: newCn,
-            en: en.replace(/\s+/g, "").toLowerCase(),
+            en: en,
             sentences,
             types: types ?? []
           };
@@ -1501,7 +1591,9 @@ export class WordupImproveComponent {
         localStorage.removeItem('editedCards');
         this.editedCards.date = this.datePipe.transform(new Date(), 'yyyy-MM-dd hh:mm:ss');
         this.editedCards.cards = '';
-        this.updateLog(true);
+        if (!isDevMode()) {
+          this.updateLog(true);
+        }
       } else {
         repeatCards.forEach((repeatCard: any) => {
           console.log('重複未加入的卡片', this.cards.find(c => c.en === repeatCard.en));
@@ -1510,6 +1602,8 @@ export class WordupImproveComponent {
 
       console.log(JSON.stringify(tempCards)); // 不能移除，方便重新增加 json
       console.log(tempCards.length)
+
+      console.log(tempCards.find(x => x?.en == 'scuba diving'));
     }
   }
 
@@ -1673,32 +1767,34 @@ export class WordupImproveComponent {
   }
 
   async updateLog(direct: boolean = false): Promise<void> {
-    if (direct || confirm('確定要更新雲端紀錄嗎？(此動作不可逆)')) {
-      this.commonService.loadingOn();
-      user(this.auth).pipe(
-        delay(1),
-        take(1),
-        tap(async (user) => {
-          if (user) {
-            localStorage.setItem('lastUpdateLogTime', this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss') ?? '');
-            this.lastUpdateLogTime = this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss') ?? '';
+    if (!isDevMode()) {
+      if (direct || confirm('確定要更新雲端紀錄嗎？(此動作不可逆)')) {
+        this.commonService.loadingOn();
+        user(this.auth).pipe(
+          delay(1),
+          take(1),
+          tap(async (user) => {
+            if (user) {
+              localStorage.setItem('lastUpdateLogTime', this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss') ?? '');
+              this.lastUpdateLogTime = this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss') ?? '';
 
-            this.logsCollection = collection(this.firestore, 'Logs');
-            const editedCardsString = JSON.stringify(this.editedCards?.cards);
-            await setDoc(doc(this.logsCollection, user.uid), {
-              email: user.email,
-              answerScore: this.answerScore,
-              editedCards: editedCardsString,
-              editedCardsDate: this.editedCards?.date,
-            });
-            alert('更新成功');
-            this.commonService.loadingOff();
-            this.refreshCnEdited();
-            this.firebaseAuth.isEnterRegistPage = false;
-          }
-        }),
-        take(1),
-      ).subscribe();
+              this.logsCollection = collection(this.firestore, 'Logs');
+              const editedCardsString = JSON.stringify(this.editedCards?.cards);
+              await setDoc(doc(this.logsCollection, user.uid), {
+                email: user.email,
+                answerScore: this.answerScore,
+                editedCards: editedCardsString,
+                editedCardsDate: this.editedCards?.date,
+              });
+              alert('更新成功');
+              this.commonService.loadingOff();
+              this.refreshCnEdited();
+              this.firebaseAuth.isEnterRegistPage = false;
+            }
+          }),
+          take(1),
+        ).subscribe();
+      }
     }
   }
 
