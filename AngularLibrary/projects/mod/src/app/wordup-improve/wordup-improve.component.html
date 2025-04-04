@@ -436,6 +436,8 @@
       <input id="dayScore" [(ngModel)]="config.dayScore" />
       <label for="questionsScore">錯誤加權分數</label>
       <input id="questionsScore" [(ngModel)]="config.questionsScore" />
+      <label for="notReviewdCount">每次未答題限數</label>
+      <input id="notReviewdCount" [(ngModel)]="config.notReviewdCount" />
       <label for="prompt">提示詞</label>
       <input id="prompt" [(ngModel)]="config.prompt" />
       <label>抽籤模式</label>
@@ -502,6 +504,11 @@
           查詢錯誤紀錄
         </button>
         <p>{{researchedAnswerScore|json}}</p>
+      </div>
+      <div>
+        <hr>
+        <textarea [(ngModel)]="dataEditedCards"></textarea>
+        <button class="unobviousBtn" (click)="importEditedCards()">匯入卡片新增編輯資料</button>
       </div>
     </div>
   </div>

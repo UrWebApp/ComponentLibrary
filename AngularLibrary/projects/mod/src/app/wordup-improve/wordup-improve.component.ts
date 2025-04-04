@@ -410,7 +410,7 @@ export class WordupImproveComponent {
 
       // 先背最多扣分的，如果都跑進一小時內，沒了就接續最近七天的，七天的都進一小時內，換最近三十天的跟新的抽
 
-      if (this.errorModeDisplay.notReviewdCount <= 9) {
+      if (this.errorModeDisplay.notReviewdCount <= this.config.notReviewdCount) {
         this.errorModeDisplay.winningArray = 'notReviewd';
         this.errorModeDisplay.notReviewdCount += 1;
         preprocessCards.notReviewed.sort((a, b) => b.sentences?.length - a.sentences?.length);
@@ -1030,7 +1030,6 @@ export class WordupImproveComponent {
 
       let searched = this.cards.find((item) => exactPattern.test(item.en.toLowerCase()))
         || this.cards.find((item) => loosePattern.test(item.en.toLowerCase()));
-      console.log('cc')
       if (searched) {
         let word = this.answerScore.find((w: any) =>
           // word.en.toLowerCase().match(pattern)
@@ -1463,7 +1462,15 @@ export class WordupImproveComponent {
         if (tempCard) {
           tempCard.cn = editedCard.cn;
           if (editedCard.sentences.length > 0) {
-            tempCard.sentences = tempCard.sentences.concat(editedCard.sentences.filter((s: any) => s.en != ''));
+            const merged = tempCard.sentences.concat(
+              editedCard.sentences.filter((s: any) => s.en !== '')
+            );
+
+            const uniqueSentences = Array.from(
+              new Map(merged.map(s => [s.en, s])).values()
+            );
+
+            tempCard.sentences = uniqueSentences;
           }
         } else {
           this.cards.push(editedCard);
@@ -1519,6 +1526,9 @@ export class WordupImproveComponent {
     const tempCard = this.cards.find((card: any) => card.en.trim().toLowerCase() === en.trim().toLowerCase());
     const tempeditedCard = this.editedCards.cards.find((card: any) => card.en.trim().toLowerCase() === en.trim().toLowerCase());
 
+    console.log('tempCard', tempCard)
+    console.log('tempeditedCard', tempeditedCard)
+
     if (!tempCard) {
       return alert('找不到單字請新增單字');
     } else {
@@ -1527,7 +1537,6 @@ export class WordupImproveComponent {
           alert('請確定更新或新增欄位');
         } else {
           if (tempeditedCard) {
-
             tempeditedCard.sentences = tempeditedCard.sentences.filter((s: any) => s.en != '');
             tempeditedCard.sentences.push({
               en: sentences[0]?.en,
@@ -1535,14 +1544,21 @@ export class WordupImproveComponent {
             });
           }
 
-          let editedCards = JSON.stringify(this.editedCards);
-          localStorage.setItem('editedCards', editedCards);
+          console.log('this.editedCards', this.editedCards)
+
+          localStorage.setItem('editedCards', JSON.stringify(this.editedCards));
           this.editedCards.card = new Card();
           this.editedCards.displayUpdateCnEdite = false;
           this.refreshCnEdited();
         }
       }
     }
+  }
+
+  dataEditedCards = '';
+  importEditedCards() {
+    this.editedCards = JSON.parse(this.dataEditedCards);
+    localStorage.setItem('editedCards', JSON.stringify(this.editedCards));
   }
 
   /**
@@ -1883,6 +1899,7 @@ export class Config {
     speakMsgSentence: 'w',
   };
   prompt: string = '你現在要扮演一位英文導師，需要用中文解釋接下來提問的句子，拆解句子文法，以及為何要這樣使用語句，並拆解單字原形與單字常用的意思與單字辭源與單字字根，並且提供單字與同義字差異與單字反義字與單字記憶技巧，並在最後做列項總結。總結後出一題選擇題考我幫助我記憶，並在我回答後詳解，詳解後繼續出下一題。';
+  notReviewdCount = 9;
 }
 
 export class Card {
