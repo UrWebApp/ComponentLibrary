@@ -1457,10 +1457,18 @@ export class WordupImproveComponent {
   */
   refreshCnEdited(): void {
     if (this.editedCards?.cards) {
+      console.log(this.editedCards?.cards)
       this.editedCards?.cards?.forEach((editedCard: any) => {
         let tempCard = this.cards.find((card: any) => card.en.toLowerCase() === editedCard.en.toLowerCase());
+        if(editedCard.en == 'analyze'){
+          console.log('tempCard',tempCard)
+        }
         if (tempCard) {
           tempCard.cn = editedCard.cn;
+          if(tempCard.en == 'analyze'){
+            console.log('editedCard.sentences',editedCard.sentences)
+          }
+
           if (editedCard.sentences.length > 0) {
             const merged = tempCard.sentences.concat(
               editedCard.sentences.filter((s: any) => s.en !== '')
@@ -1469,6 +1477,10 @@ export class WordupImproveComponent {
             const uniqueSentences = Array.from(
               new Map(merged.map(s => [s.en, s])).values()
             );
+            if(tempCard.en == 'analyze'){
+              console.log('uniqueSentences',uniqueSentences)
+            }
+
 
             tempCard.sentences = uniqueSentences;
           }
@@ -1477,6 +1489,12 @@ export class WordupImproveComponent {
         }
         this.editedCards.displayAddNewCard = false;
       });
+
+      const card = this.cards.find(c => c.en === this.card.en);
+      console.log(this.card,card)
+      if (card) {
+        this.card = card;
+      }
     }
   }
 
@@ -1526,9 +1544,6 @@ export class WordupImproveComponent {
     const tempCard = this.cards.find((card: any) => card.en.trim().toLowerCase() === en.trim().toLowerCase());
     const tempeditedCard = this.editedCards.cards.find((card: any) => card.en.trim().toLowerCase() === en.trim().toLowerCase());
 
-    console.log('tempCard', tempCard)
-    console.log('tempeditedCard', tempeditedCard)
-
     if (!tempCard) {
       return alert('找不到單字請新增單字');
     } else {
@@ -1542,10 +1557,11 @@ export class WordupImproveComponent {
               en: sentences[0]?.en,
               cn: sentences[0]?.cn
             });
+          } else {
+            this.editedCards.cards.push(this.editedCards.card);
           }
 
-          console.log('this.editedCards', this.editedCards)
-
+          this.editedCards.date = this.datePipe.transform(new Date(), 'yyyy-MM-dd hh:mm:ss');
           localStorage.setItem('editedCards', JSON.stringify(this.editedCards));
           this.editedCards.card = new Card();
           this.editedCards.displayUpdateCnEdite = false;
