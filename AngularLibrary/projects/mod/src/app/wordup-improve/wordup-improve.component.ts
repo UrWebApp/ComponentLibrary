@@ -128,8 +128,6 @@ export class WordupImproveComponent {
     this.lastdownloadLogTime = localStorage.getItem('lastdownloadLogTime') ?? '';
 
     this.errorModeDisplay.notReviewdCount = 0;
-
-    // console.log('this.config',this.config)
   }
 
   /**
@@ -210,35 +208,47 @@ export class WordupImproveComponent {
   }
 
   vocabularyUrl = './assets/enHelper/vocabulary.json';
+  grammarUrl = './assets/enHelper/grammar.json';
+  typesUrl = './assets/enHelper/types.json';
+
+  grammar = {};
   cards: Array<Card> = [];
   answerScore: any = [];
   /**
   * 初始化卡片資料
   */
   initCards(): void {
-    this.httpClient
-      .get(this.vocabularyUrl)
-      .pipe(
-        tap((res: any) => {
-          this.cards = res;
-          this.answerScore = JSON.parse(
-            localStorage.getItem('answerScore') ?? '[]'
-          );
+    forkJoin({
+      grammar: this.httpClient.get<any>(this.grammarUrl),
+      vocabularyTypes: this.httpClient.get<any>(this.typesUrl),
+      vocabulary: this.httpClient.get<any>(this.vocabularyUrl)
+    }).pipe(
+      tap(({ grammar, vocabularyTypes, vocabulary }) => {
 
-          // console.log(JSON.stringify(this.answerScore));
-          // console.log('this.answerScore',this.answerScore.length)
+        this.cards = vocabulary;
+        this.answerScore = JSON.parse(
+          localStorage.getItem('answerScore') ?? '[]'
+        );
 
-          this.configInit();
-          this.editedCardsInit();
-          this.cardslinkScore();
-          this.ieltsInfoManagement();
-          this.unfamiliarReflash();
-        })
-      )
-      .subscribe((res: any) => {
-        this.drawCard();
-        this.commonService.loadingOff();
-      });
+        this.configInit();
+        this.editedCardsInit();
+        this.cardslinkScore();
+        this.unfamiliarReflash();
+
+        this.grammar = grammar;
+        const vocabularyTypesLocalStorage = localStorage.getItem('vocabularyTypes');
+        if (!vocabularyTypesLocalStorage) {
+          this.vocabularyTypes = vocabularyTypes;
+        } else {
+          this.vocabularyTypes = JSON.parse(vocabularyTypesLocalStorage);
+        }
+
+        this.calculateTypesFilterCards();
+      })
+    ).subscribe(() => {
+      this.drawCard();
+      this.commonService.loadingOff();
+    });
   }
 
   answerScoreAverage = 0;
@@ -295,10 +305,7 @@ export class WordupImproveComponent {
     this.answerScore.forEach((s: any) => {
       if (!this.cards.find(c => c.en == s.en)) {
         let c = this.cards.find(c => c.en.toLowerCase() == s.en.toLowerCase());
-        if (c) {
-          // console.log('c', c);
-          // console.log('s', s);
-        } else {
+        if (!c) {
           console.log(`answerScore.${s.en} 在 cards 找不到`);
           this.repeatAnswerScore.push(s.en);
         }
@@ -340,8 +347,6 @@ export class WordupImproveComponent {
               return [syn];
             }))
           );
-          // console.log(synonyms)
-          // return synonyms;
           return forkJoin(translationRequests);
         })
       ).subscribe(res => { console.log(res) });
@@ -355,14 +360,17 @@ export class WordupImproveComponent {
   */
   drawCard(): void {
 
+    let tempCards: Card[] = this.typesFilterCards.length > 0 ? this.typesFilterCards : this.cards;
+
     this.calculateAverageNegativeScore();
+
     // 錯誤優先模式
     if (this.config.drawMode === 'errorFirst') {
 
       // this.unfamiliarSorting();
       // this.cards = randomArray.concat();
 
-      const preprocessCards = this.cards.reduce((acc: {
+      const preprocessCards = tempCards.reduce((acc: {
         positive: Card[]; recent: Card[]; remain: Card[]; notReviewed: Card[]; maxNegativeScore: Card[];
         within1d: Card[]; within2d: Card[]; within7d: Card[]; within14d: Card[];
       }, card) => {
@@ -414,7 +422,7 @@ export class WordupImproveComponent {
         this.errorModeDisplay.winningArray = 'notReviewd';
         this.errorModeDisplay.notReviewdCount += 1;
         preprocessCards.notReviewed.sort((a, b) => b.sentences?.length - a.sentences?.length);
-        this.cards = preprocessCards.notReviewed
+        tempCards = preprocessCards.notReviewed
           .concat(preprocessCards.recent)
           .concat(preprocessCards.remain)
           .concat(preprocessCards.maxNegativeScore)
@@ -438,7 +446,7 @@ export class WordupImproveComponent {
             preprocessCards.maxNegativeScore.sort((a, b) => b.updateTime.days - a.updateTime.days);
           }
 
-          this.cards = preprocessCards.maxNegativeScore
+          tempCards = preprocessCards.maxNegativeScore
             .concat(preprocessCards.recent)
             .concat(preprocessCards.remain)
             .concat(preprocessCards.notReviewed)
@@ -451,7 +459,7 @@ export class WordupImproveComponent {
           if (preprocessCards.within7d.length != 0) {
             this.errorModeDisplay.winningArray = 'within7d';
             preprocessCards.within7d.sort((a, b) => a.score - b.score);
-            this.cards = preprocessCards.within7d
+            tempCards = preprocessCards.within7d
               .concat(preprocessCards.recent)
               .concat(preprocessCards.remain)
               .concat(preprocessCards.maxNegativeScore)
@@ -464,7 +472,7 @@ export class WordupImproveComponent {
             if (preprocessCards.within14d.length != 0) {
               this.errorModeDisplay.winningArray = 'within14d';
               preprocessCards.within14d.sort((a, b) => a.score - b.score);
-              this.cards = preprocessCards.within14d
+              tempCards = preprocessCards.within14d
                 .concat(preprocessCards.recent)
                 .concat(preprocessCards.remain)
                 .concat(preprocessCards.maxNegativeScore)
@@ -476,7 +484,7 @@ export class WordupImproveComponent {
             } else {
               this.errorModeDisplay.winningArray = 'remain';
               preprocessCards.remain.sort((a, b) => b.updateTime.days - a.updateTime.days);
-              this.cards = preprocessCards.remain
+              tempCards = preprocessCards.remain
                 .concat(preprocessCards.recent)
                 .concat(preprocessCards.within2d)
                 .concat(preprocessCards.maxNegativeScore)
@@ -488,8 +496,6 @@ export class WordupImproveComponent {
             }
           }
         }
-
-        // console.log(this.cards)
       }
 
       // const nonEmptyArrays = [{
@@ -514,13 +520,13 @@ export class WordupImproveComponent {
 
     // 沒看過優先
     if (this.config.drawMode === 'unfamiliarFirst') {
-      let zero = this.cards.filter((card) => card.score == 0);
-      let familiar = this.cards.filter((card) => card.score != 0);
-      this.cards = zero.concat(familiar);
+      let zero = tempCards.filter((card) => card.score == 0);
+      let familiar = tempCards.filter((card) => card.score != 0);
+      tempCards = zero.concat(familiar);
     }
 
     this.debug = { thresholdScore: 0, list: [] };
-    const totalScore = this.cards.reduce(
+    const totalScore = tempCards.reduce(
       (sum: any, obj: any) => sum + obj?.sentences?.length,
       0
     );
@@ -535,16 +541,16 @@ export class WordupImproveComponent {
     while (isLocked) {
 
       let drawNumber = 0;
-      let answerInfo = this.answerScore.find((res: any) => res.en.toLowerCase() === this.cards[drawNumber].en.toLowerCase());
+      let answerInfo = this.answerScore.find((res: any) => res.en.toLowerCase() === tempCards[drawNumber].en.toLowerCase());
 
       if (this.config.drawMode !== 'errorFirst' && this.config.drawMode !== 'unfamiliarFirst') {
-        drawNumber = this.glgorithmsService.getRandomNum(this.cards?.length - 1);
-        answerInfo = this.answerScore.find((res: any) => res.en.toLowerCase() === this.cards[drawNumber].en.toLowerCase());
+        drawNumber = this.glgorithmsService.getRandomNum(tempCards?.length - 1);
+        answerInfo = this.answerScore.find((res: any) => res.en.toLowerCase() === tempCards[drawNumber].en.toLowerCase());
         let preCumulativeScore = cumulativeScore;
 
         // 例句數量權重
         let exSentsScore, ansScore, timeDiffeScore, recordAvgScore, noAnsRandomScore;
-        exSentsScore = Math.floor(this.cards[drawNumber]?.sentences?.length / 50);
+        exSentsScore = Math.floor(tempCards[drawNumber]?.sentences?.length / 50);
         cumulativeScore += exSentsScore;
 
         // 答題權重
@@ -567,7 +573,7 @@ export class WordupImproveComponent {
         // 每次抽取結果
         this.debug.list.push({
           finalScore: cumulativeScore,
-          en: this.cards[drawNumber]?.en.toLowerCase(),
+          en: tempCards[drawNumber]?.en.toLowerCase(),
           drawCount: drawCount++ + 1,
           sentencesLength: exSentsScore,
           score: answerInfo?.score,
@@ -587,17 +593,17 @@ export class WordupImproveComponent {
 
       // 累積分數超過臨界值則得獎
       if (
-        (thresholdScore <= cumulativeScore && this.cards[drawNumber]?.en.toLowerCase() !== this.card?.en.toLowerCase())
+        (thresholdScore <= cumulativeScore && tempCards[drawNumber]?.en.toLowerCase() !== this.card?.en.toLowerCase())
         || this.config.drawMode === 'errorFirst'
         || this.config.drawMode === 'unfamiliarFirst'
       ) {
-        this.card = JSON.parse(JSON.stringify(this.cards[drawNumber]));
+        this.card = JSON.parse(JSON.stringify(tempCards[drawNumber]));
         this.card.score = answerInfo?.score;
         this.card.updateTime = this.calculateTime(answerInfo?.updateTime);
         isLocked = false;
         this.record.drawCountRecord.push(drawCount);
 
-        this.maxNegativeScoreIndex = this.cards.filter(c => this.card.score == c.score).length;
+        this.maxNegativeScoreIndex = tempCards.filter(c => this.card.score == c.score).length;
       }
     }
 
@@ -622,8 +628,6 @@ export class WordupImproveComponent {
 
     this.openIframe('https://www.google.com/search?sca_esv=1ddba70af590f790&sca_upv=1&igu=1&q=', '&udm=2&fbs=AEQNm0DVrIRjdA3gRKfJJ-deMT8ZtYOjoIt1NWOMRkEKym4u5PkAZgxJOmIgPx6WieMhF6q1Hq7W6nME2Vp0eHuijF3ZElaTgD0zbj1gkQrti2r6HpgEQJ__FI2P2zVbzOTQnx-xQGuWfPA7_LjHL8X54xCjPigLtLX638JLYGhCvRlpvvGBo-fNpc7q_rU8dgffCadMYeMgxPqmupqDpgcFpVxKo2EBMA&sa=X&ved=2ahUKEwj91ZGlkuCIAxU4cPUHHd29CMAQtKgLegQIEhAB&biw=1920&bih=919&dpr=1');
     // ,' definition'
-
-    // console.log('this.cards',this.cards)
   }
 
   /**
@@ -1421,7 +1425,6 @@ export class WordupImproveComponent {
     this.editedCards.card = new Card();
     this.editedCards.notEditMode = true;
     this.refreshCnEdited();
-    // console.log('this.editedCards',this.editedCards)
   }
 
   /**
@@ -1457,31 +1460,17 @@ export class WordupImproveComponent {
   */
   refreshCnEdited(): void {
     if (this.editedCards?.cards) {
-      console.log(this.editedCards?.cards)
       this.editedCards?.cards?.forEach((editedCard: any) => {
         let tempCard = this.cards.find((card: any) => card.en.toLowerCase() === editedCard.en.toLowerCase());
-        if(editedCard.en == 'analyze'){
-          console.log('tempCard',tempCard)
-        }
         if (tempCard) {
           tempCard.cn = editedCard.cn;
-          if(tempCard.en == 'analyze'){
-            console.log('editedCard.sentences',editedCard.sentences)
-          }
-
           if (editedCard.sentences.length > 0) {
             const merged = tempCard.sentences.concat(
               editedCard.sentences.filter((s: any) => s.en !== '')
             );
-
             const uniqueSentences = Array.from(
               new Map(merged.map(s => [s.en, s])).values()
             );
-            if(tempCard.en == 'analyze'){
-              console.log('uniqueSentences',uniqueSentences)
-            }
-
-
             tempCard.sentences = uniqueSentences;
           }
         } else {
@@ -1491,7 +1480,6 @@ export class WordupImproveComponent {
       });
 
       const card = this.cards.find(c => c.en === this.card.en);
-      console.log(this.card,card)
       if (card) {
         this.card = card;
       }
@@ -1634,8 +1622,6 @@ export class WordupImproveComponent {
 
       console.log(JSON.stringify(tempCards)); // 不能移除，方便重新增加 json
       console.log(tempCards.length)
-
-      console.log(tempCards.find(x => x?.en == 'scuba diving'));
     }
   }
 
@@ -1722,33 +1708,87 @@ export class WordupImproveComponent {
     window.open('https://chatgpt.com/', '_blank');
   }
 
-  grammar = {};
   vocabularyTypes: any = [];
-  grammarUrl = './assets/enHelper/grammar.json';
-  typesUrl = './assets/enHelper/types.json';
+  typesSelected: any = { lv1: [], lv2: [], lv3: [] };
+  typesSelectedCount = 0;
+  typesFilterCards: Card[] = [];
 
-  ieltsInfoManagement() {
-    forkJoin({
-      grammar: this.httpClient.get<any>(this.grammarUrl),
-      vocabularyTypes: this.httpClient.get<any>(this.typesUrl)
-    })
-      .pipe(
-        tap(({ grammar, vocabularyTypes }) => {
-          this.grammar = grammar;
-          this.vocabularyTypes = vocabularyTypes;
-        })
-      )
-      .subscribe(() => { });
-  }
+  calculateTypesFilterCards() {
 
-  typesSelected: string[] = [];
-  typesSelect(type: string, event: any) {
-    if (event.target.checked) {
-      this.typesSelected.push(type);
-    } else {
-      this.typesSelected = this.typesSelected.filter(t => t !== type);
-    }
-    console.log(this.typesSelected)
+    this.typesFilterCards = [];
+    this.typesSelected.lv1 = [];
+    this.typesSelected.lv2 = [];
+    this.typesSelected.lv3 = [];
+
+    this.typesSelectedCount = 0;
+    this.vocabularyTypes.forEach((t: any) => {
+
+      if (t.level1?.selected) {
+        this.typesSelected.lv1.push(t.level1.en);
+      } else {
+        this.typesSelected.lv1 = this.typesSelected.lv1.filter((tt: any) => tt !== t.level1.en);
+      }
+
+      t.level2?.forEach((t2: any) => {
+        if (t2?.selected) {
+          this.typesSelected?.lv2?.push(t2?.en);
+        } else {
+          this.typesSelected?.lv2?.filter((tt: any) => tt !== t2?.en);
+        }
+
+        t2?.level3?.forEach((t3: any) => {
+          if (t3?.selected) {
+            this.typesSelected?.lv3?.push(t3?.en);
+          } else {
+            this.typesSelected?.lv3?.filter((tt: any) => tt !== t3?.en);
+          }
+        });
+      });
+    });
+
+    this.cards.forEach(c => {
+      const values = new Set<string>();
+      for (const obj of c.types) {
+        for (const key in obj) {
+          values.add(obj[key]);
+        }
+      }
+      // every some
+      let matched = false;
+      if (this.typesSelected.lv1.length > 0) {
+        const anyIncluded = this.typesSelected.lv1.some((t: any) => values.has(t));
+        if (anyIncluded) matched = true;
+      }
+      if (this.typesSelected.lv2.length > 0) {
+        const anyIncluded = this.typesSelected.lv2.some((t: any) => values.has(t));
+        matched = anyIncluded && matched;
+      }
+      if (this.typesSelected.lv3.length > 0) {
+        const anyIncluded = this.typesSelected.lv3.some((t: any) => values.has(t));
+        matched = anyIncluded && matched;
+      }
+
+      // 額外條件：如果沒選類別也要顯示
+      if (
+        this.typesSelected.lv1.length === 0 &&
+        this.typesSelected.lv2.length === 0 &&
+        this.typesSelected.lv3.length === 0
+      ) {
+        matched = true;
+      }
+
+      // 額外條件：未分類也要顯示
+      if (this.typesSelected.lv1.includes('Uncategorized') && c.types.length === 0) {
+        matched = true;
+      }
+      // 符合條件就加到結果中
+      if (matched) {
+        this.typesSelectedCount++;
+        this.typesFilterCards.push(c);
+      }
+    });
+
+    localStorage.setItem('vocabularyTypes', JSON.stringify(this.vocabularyTypes));
   }
 
   /**
@@ -1926,7 +1966,7 @@ export class Card {
   sentencesLength: number = 0;
   updateTime: ElapsedTime = new ElapsedTime();
   sentences: Array<any> = [{ en: '', cn: '' }];
-  types: Array<string> = [];
+  types: Array<any> = [];
 }
 
 export class ElapsedTime {

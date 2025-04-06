@@ -603,24 +603,29 @@
 </div>
 
 <ul>
+  分類篩選：({{typesSelectedCount}})
   <li *ngFor="let type of vocabularyTypes; let i = index">
-    <label>
-      <input type="checkbox" [(ngModel)]="type.level1.selected" (change)="typesSelect(type.level1.en, $event)">
+    <label style="font-size: 1.6rem;">
+      <input type="checkbox" [(ngModel)]="type.level1.selected" (change)="calculateTypesFilterCards()">
       {{ type.level1.cn }}
     </label>
     <ng-container *ngIf="type.level1.selected">
       <ul>
         <li *ngFor="let lv2 of type.level2; let i = index">
-          <label>
-            <input type="checkbox" [(ngModel)]="lv2.selected" (change)="typesSelect(lv2.en, $event)">
+          <label style="font-size: 1.2rem;">
+            <input type="checkbox" [(ngModel)]="lv2.selected" (change)="calculateTypesFilterCards()">
             {{ lv2.en }}
           </label>
           <ng-container *ngIf="lv2.selected">
-        <li *ngFor="let lv3 of lv2.level3; let i = index">
-          <label>
-            <input type="checkbox" [(ngModel)]="lv3.selected" (change)="typesSelect(lv3.en, $event)">
-            {{ lv3.en }}
-          </label>
+            <li *ngFor="let lv3 of lv2.level3; let i = index">
+              <label style="font-size: 1rem;">
+                <input type="checkbox" [(ngModel)]="lv3.selected" (change)="calculateTypesFilterCards()">
+                {{ lv3.en }}
+              </label>
+            </li>
+          </ng-container>
         </li>
+      </ul>
     </ng-container>
+  </li>
 </ul>
