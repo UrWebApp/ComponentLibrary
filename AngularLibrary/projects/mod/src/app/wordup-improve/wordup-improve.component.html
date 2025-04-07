@@ -4,7 +4,7 @@
   (click)="openBlankUrl('https://dictionary.cambridge.org/dictionary/english-chinese-traditional/')">劍</button>
 <button class="quickBtn EP" (click)="copySelectedText(config.prompt)">解</button>
 <button class="quickBtn NC"
-  (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;">新</button>
+  (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;addNewCardLock = false;">新</button>
 <button class="quickBtn BT" (click)="commonService.goToAnchor(backToTopDOM)">🔝</button>
 
 <!-- 主要介面 -->
@@ -136,7 +136,7 @@
           {{errorModeDisplay.notReviewdCount}})
         </p>
         <p class="subInfo userCantSelect">
-          (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7)}})
+          (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7) | number:'1.0-0'}})
         </p>
         <p class="subInfo userCantSelect">
           <span>Score：{{ card.score }},</span>
@@ -396,7 +396,7 @@
       <span class="userCantSelect">搜尋中文相似單字</span>
     </button>
     <p>{{ searchChineseObj.similarWords }}</p>
-    <button (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;">
+    <button (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;addNewCardLock = false;">
       <span class="userCantSelect">新增新卡片</span>
     </button>
   </div>
@@ -407,11 +407,10 @@
     <div>
       <button class="unobviousBtn" (click)="enterRegistPage()">註冊登入</button>
       <button class="unobviousBtn" (click)="setTheme()">切換黑白模式</button>
-      <br />
       <button class="unobviousBtn" (click)="clickDebug()">Debug</button>
-      <button class="unobviousBtn" (click)="this.displayUnfamiliar = !this.displayUnfamiliar;">
+      <!-- <button class="unobviousBtn" (click)="this.displayUnfamiliar = !this.displayUnfamiliar;">
         不熟榜
-      </button>
+      </button> -->
       <button class="unobviousBtn" (click)="keyboardControl = !keyboardControl">專注鍵盤模式 ({{ keyboardControl }})</button>
     </div>
     <!-- <canvas id="canvas">{{ chart }}</canvas> -->
@@ -604,21 +603,21 @@
   <div style="display: flex;justify-content: center;">
     <table class="familiarityTable">
       <tbody>
-        <td></td>
+        <td>total：{{this.cards.length}}</td>
         <td data-th="未複習到">未複習到</td>
         <td data-th="超不熟悉">超不熟悉</td>
         <td data-th="不熟悉">不熟悉</td>
         <td data-th="熟悉">熟悉</td>
         <td data-th="超熟悉">超熟悉</td>
       </tbody>
-      <tr>
+      <!-- <tr>
         <td>Online</td>
-        <!-- <td data-th="未複習到">{{tempFamiliarity.notReviewed}}</td>
+        <td data-th="未複習到">{{tempFamiliarity.notReviewed}}</td>
         <td data-th="超不熟悉">{{tempFamiliarity.veryUnfamiliar}}</td>
         <td data-th="不熟悉">{{tempFamiliarity.unfamiliar}}</td>
         <td data-th="熟悉">{{tempFamiliarity.familiar}}</td>
-        <td data-th="超熟悉">{{tempFamiliarity.veryFamiliar}}</td> -->
-      </tr>
+        <td data-th="超熟悉">{{tempFamiliarity.veryFamiliar}}</td>
+      </tr> -->
       <tr>
         <td>Local</td>
         <td data-th="未複習到">{{familiarity.notReviewed}}</td>
@@ -657,16 +656,25 @@
 </div>
 
 <!-- 新增卡片 -->
-<div style="flex-direction: column; align-items: center"
+<div style="flex-direction: column; align-items: center; margin-top: 3rem;"
   [style.display]="editedCards.displayAddNewCard ? 'flex' : 'none'">
-  <label for="cn">cn</label>
-  <input autocomplete="off" type="text" id="cn" [(ngModel)]="editedCards?.card.cn[0]" />
-  <label for="en">en</label>
-  <input autocomplete="off" type="text" id="en" [(ngModel)]="editedCards.card.en" />
-  <label for="sentencesCn">sentences cn</label>
-  <input autocomplete="off" type="text" id="sentencesCn" [(ngModel)]="editedCards.card?.sentences[0].cn" />
-  <label for="sentencesEn">sentences en</label>
-  <input autocomplete="off" type="text" id="sentencesEn" [(ngModel)]="editedCards.card?.sentences[0].en" />
+
+  <label for="cn" *ngIf="addNewCardLock">
+    CN：<input autocomplete="off" type="text" id="cn" [(ngModel)]="editedCards?.card.cn[0]" />
+  </label>
+
+  <label for="en">
+    EN：<input autocomplete="off" type="text" id="en" [(ngModel)]="editedCards.card.en" />
+  </label>
+
+  <label for="sentencesCn" *ngIf="addNewCardLock">
+    Sentences CN：<input autocomplete="off" type="text" id="sentencesCn" [(ngModel)]="editedCards.card?.sentences[0].cn" />
+  </label>
+
+  <label for="sentencesEn" *ngIf="addNewCardLock">
+    Sentences EN：<input autocomplete="off" type="text" id="sentencesEn" [(ngModel)]="editedCards.card?.sentences[0].en" />
+  </label>
+
   <div>
     <button *ngIf="!editedCards.displayUpdateCnEdite" (click)="addNewCard()">
       <span class="userCantSelect">新增單字卡</span>
@@ -691,7 +699,7 @@
 <hr>
 
 <!-- 塞選卡片 -->
-<details class="configBox">
+<details class="configBox" [style.display]="(editedCards.displayAddNewCard || firebaseAuth.isEnterRegistPage) ? 'none' : 'flex'">
   <summary>分類篩選：({{typesSelectedCount}})</summary>
   <ng-container *ngFor="let type of vocabularyTypes; let i = index">
     <label style="font-size: 1.6rem;">

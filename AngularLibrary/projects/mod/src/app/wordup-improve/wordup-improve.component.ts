@@ -270,7 +270,7 @@ export class WordupImproveComponent {
     if (negativeScores.length > 0) {
       const sum = negativeScores.reduce((total: number, item: any) => total + item.score, 0);
       this.answerScoreAverage = Math.floor(sum / negativeScores.length);
-      this.maxNegativeScore = Math.min(...negativeScores.map((item: any) => item.score));
+      this.maxNegativeScore = Math.round(Math.min(...negativeScores.map((item: any) => item.score)));
     }
 
     // 計算每種分數數量
@@ -1511,6 +1511,7 @@ export class WordupImproveComponent {
     }
   }
 
+  addNewCardLock = false;
   /**
   * 新增單字
   */
@@ -1535,6 +1536,8 @@ export class WordupImproveComponent {
         } else {
           alert('卡片不存在，請繼續新增');
         }
+
+        this.addNewCardLock = true;
       } else {
 
         if (!sentences[0]?.en || !sentences[0]?.cn) {
