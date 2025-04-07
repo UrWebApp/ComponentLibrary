@@ -32,7 +32,7 @@
   <div class="cardBox">
     <div *ngIf="card">
       <span class="subInfo userCantSelect">
-        Score：{{ card.score }} (<span [ngSwitch]="errorModeDisplay.winningArray">
+        Score：({{ card.score }}), (<span [ngSwitch]="errorModeDisplay.winningArray">
           <ng-container *ngSwitchCase="'recent'">最近的:({{errorModeDisplay.recent}})</ng-container>
           <ng-container *ngSwitchCase="'remain'">remain:({{errorModeDisplay.remain}})</ng-container>
           <ng-container *ngSwitchCase="'notReviewed'">未審閱:({{errorModeDisplay.notReviewed}})</ng-container>
@@ -139,7 +139,8 @@
           (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7)}})
         </p>
         <p class="subInfo userCantSelect">
-          <span>Score：{{ card.score }} {{maxNegativeScoreIndex + 1}}</span>
+          <span>Score：{{ card.score }},</span>
+          <span>maxNegativeScoreIndex：{{maxNegativeScoreIndex + 1}},</span>
           <span>winningArray:({{errorModeDisplay.winningArray}}),</span>
           <span>recent:({{errorModeDisplay.recent}}),</span>
           <span>remain:({{errorModeDisplay.remain}}),</span>

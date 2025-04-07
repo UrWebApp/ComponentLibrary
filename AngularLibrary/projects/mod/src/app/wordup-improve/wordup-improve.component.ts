@@ -354,13 +354,14 @@ export class WordupImproveComponent {
 
   debug: any;
   card: Card = new Card();
-  test = '';
+  drawModeInfoLock = '正常';
   /**
   * 根據邏輯抽取卡片資料
   */
   drawCard(): void {
 
     let tempCards: Card[] = this.typesFilterCards.length > 0 ? this.typesFilterCards : this.cards;
+    let drawMode = '正常';
 
     this.calculateAverageNegativeScore();
 
@@ -418,7 +419,7 @@ export class WordupImproveComponent {
 
       // 先背最多扣分的，如果都跑進一小時內，沒了就接續最近七天的，七天的都進一小時內，換最近三十天的跟新的抽
 
-      if (this.errorModeDisplay.notReviewdCount <= this.config.notReviewdCount) {
+      if (this.errorModeDisplay.notReviewdCount <= this.config.notReviewdCount && (preprocessCards.notReviewed.length > 0)) {
         this.errorModeDisplay.winningArray = 'notReviewd';
         this.errorModeDisplay.notReviewdCount += 1;
         preprocessCards.notReviewed.sort((a, b) => b.sentences?.length - a.sentences?.length);
@@ -495,17 +496,27 @@ export class WordupImproveComponent {
                   .concat(preprocessCards.within14d)
                   .concat(preprocessCards.positive)
               } else {
-                this.errorModeDisplay.winningArray = 'notReviewd';
-                preprocessCards.notReviewed.sort((a, b) => b.sentences?.length - a.sentences?.length);
-                tempCards = preprocessCards.notReviewed
-                  .concat(preprocessCards.recent)
-                  .concat(preprocessCards.remain)
-                  .concat(preprocessCards.maxNegativeScore)
-                  .concat(preprocessCards.within1d)
-                  .concat(preprocessCards.within2d)
-                  .concat(preprocessCards.within7d)
-                  .concat(preprocessCards.within14d)
-                  .concat(preprocessCards.positive)
+                if (preprocessCards.notReviewed.length > 0) {
+                  this.errorModeDisplay.winningArray = 'notReviewd';
+                  preprocessCards.notReviewed.sort((a, b) => b.sentences?.length - a.sentences?.length);
+                  tempCards = preprocessCards.notReviewed
+                    .concat(preprocessCards.recent)
+                    .concat(preprocessCards.remain)
+                    .concat(preprocessCards.maxNegativeScore)
+                    .concat(preprocessCards.within1d)
+                    .concat(preprocessCards.within2d)
+                    .concat(preprocessCards.within7d)
+                    .concat(preprocessCards.within14d)
+                    .concat(preprocessCards.positive)
+                } else {
+                  // 改為隨機抽取
+                  if (this.drawModeInfoLock == '正常') {
+                    alert('此卡組抽取順序歸零，改為隨機抽取');
+                    this.drawModeInfoLock = '特例';
+                  }
+
+                  drawMode = '特例';
+                }
               }
             }
           }
@@ -557,7 +568,7 @@ export class WordupImproveComponent {
       let drawNumber = 0;
       let answerInfo = this.answerScore.find((res: any) => res.en.toLowerCase() === tempCards[drawNumber].en.toLowerCase());
 
-      if (this.config.drawMode !== 'errorFirst' && this.config.drawMode !== 'unfamiliarFirst') {
+      if (this.config.drawMode !== 'errorFirst' && this.config.drawMode !== 'unfamiliarFirst' || drawMode == '特例') {
         drawNumber = this.glgorithmsService.getRandomNum(tempCards?.length - 1);
         answerInfo = this.answerScore.find((res: any) => res.en.toLowerCase() === tempCards[drawNumber].en.toLowerCase());
         let preCumulativeScore = cumulativeScore;
