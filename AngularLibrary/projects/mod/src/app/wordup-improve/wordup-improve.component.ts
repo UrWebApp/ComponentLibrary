@@ -482,17 +482,31 @@ export class WordupImproveComponent {
                 .concat(preprocessCards.within7d)
                 .concat(preprocessCards.positive)
             } else {
-              this.errorModeDisplay.winningArray = 'remain';
-              preprocessCards.remain.sort((a, b) => b.updateTime.days - a.updateTime.days);
-              tempCards = preprocessCards.remain
-                .concat(preprocessCards.recent)
-                .concat(preprocessCards.within2d)
-                .concat(preprocessCards.maxNegativeScore)
-                .concat(preprocessCards.notReviewed)
-                .concat(preprocessCards.within1d)
-                .concat(preprocessCards.within7d)
-                .concat(preprocessCards.within14d)
-                .concat(preprocessCards.positive)
+              if (preprocessCards.remain.length != 0) {
+                this.errorModeDisplay.winningArray = 'remain';
+                preprocessCards.remain.sort((a, b) => b.updateTime.days - a.updateTime.days);
+                tempCards = preprocessCards.remain
+                  .concat(preprocessCards.recent)
+                  .concat(preprocessCards.within2d)
+                  .concat(preprocessCards.maxNegativeScore)
+                  .concat(preprocessCards.notReviewed)
+                  .concat(preprocessCards.within1d)
+                  .concat(preprocessCards.within7d)
+                  .concat(preprocessCards.within14d)
+                  .concat(preprocessCards.positive)
+              } else {
+                this.errorModeDisplay.winningArray = 'notReviewd';
+                preprocessCards.notReviewed.sort((a, b) => b.sentences?.length - a.sentences?.length);
+                tempCards = preprocessCards.notReviewed
+                  .concat(preprocessCards.recent)
+                  .concat(preprocessCards.remain)
+                  .concat(preprocessCards.maxNegativeScore)
+                  .concat(preprocessCards.within1d)
+                  .concat(preprocessCards.within2d)
+                  .concat(preprocessCards.within7d)
+                  .concat(preprocessCards.within14d)
+                  .concat(preprocessCards.positive)
+              }
             }
           }
         }
@@ -1899,13 +1913,14 @@ export class WordupImproveComponent {
             this.commonService.loadingOff();
             this.refreshCnEdited();
             this.firebaseAuth.isEnterRegistPage = false;
-            this.drawCard();
           } else {
             alert('未找到紀錄');
           }
         }),
         take(1),
-      ).subscribe();
+      ).subscribe(() => {
+        this.drawCard();
+      });
     }
   }
 }
