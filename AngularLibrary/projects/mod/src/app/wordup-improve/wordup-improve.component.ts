@@ -1438,7 +1438,7 @@ export class WordupImproveComponent {
     this.editedCards.displayAddNewCard = false;
     this.editedCards.card = new Card();
     this.editedCards.notEditMode = true;
-    this.refreshCnEdited();
+    this.refreshEditedCard();
   }
 
   /**
@@ -1466,13 +1466,13 @@ export class WordupImproveComponent {
     localStorage.setItem('editedCards', editedCards);
     this.editedCards.card = new Card();
     this.editedCards.displayUpdateCnEdite = false;
-    this.refreshCnEdited();
+    this.refreshEditedCard();
   }
 
   /**
   * 修改單字資料同步卡片資料
   */
-  refreshCnEdited(): void {
+  refreshEditedCard(): void {
     if (this.editedCards?.cards) {
       this.editedCards?.cards?.forEach((editedCard: any) => {
         let tempCard = this.cards.find((card: any) => card.en.toLowerCase() === editedCard.en.toLowerCase());
@@ -1533,7 +1533,7 @@ export class WordupImproveComponent {
           this.editedCards.date = this.datePipe.transform(new Date(), 'yyyy-MM-dd hh:mm:ss');
           localStorage.setItem('editedCards', JSON.stringify(this.editedCards));
           this.editedCards.card = new Card();
-          this.refreshCnEdited();
+          this.refreshEditedCard();
         } else {
           handleExistingCard();
         }
@@ -1567,7 +1567,7 @@ export class WordupImproveComponent {
           localStorage.setItem('editedCards', JSON.stringify(this.editedCards));
           this.editedCards.card = new Card();
           this.editedCards.displayUpdateCnEdite = false;
-          this.refreshCnEdited();
+          this.refreshEditedCard();
         }
       }
     }
@@ -1874,7 +1874,7 @@ export class WordupImproveComponent {
               });
               alert('更新成功');
               this.commonService.loadingOff();
-              this.refreshCnEdited();
+              this.refreshEditedCard();
               this.firebaseAuth.isEnterRegistPage = false;
             }
           }),
@@ -1907,12 +1907,15 @@ export class WordupImproveComponent {
             localStorage.setItem('lastdownloadLogTime', this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss') ?? '');
             this.lastdownloadLogTime = this.datePipe.transform(new Date(), 'yyyy-MM-dd HH:mm:ss') ?? '';
 
+
             this.calculateFamiliarity();
             // this.unfamiliarReflash();
             alert('更新成功');
             this.commonService.loadingOff();
-            this.refreshCnEdited();
+            this.refreshEditedCard();
             this.firebaseAuth.isEnterRegistPage = false;
+            this.cardslinkScore();
+
           } else {
             alert('未找到紀錄');
           }
