@@ -1755,6 +1755,11 @@ export class WordupImproveComponent {
       }
 
       t.level2?.forEach((t2: any) => {
+
+        if (!t.level1?.selected) {
+          t2.selected = false;
+        }
+
         if (t2?.selected) {
           this.typesSelected?.lv2?.push(t2?.en);
         } else {
@@ -1762,6 +1767,11 @@ export class WordupImproveComponent {
         }
 
         t2?.level3?.forEach((t3: any) => {
+
+          if (!t2?.selected) {
+            t3.selected = false;
+          }
+
           if (t3?.selected) {
             this.typesSelected?.lv3?.push(t3?.en);
           } else {

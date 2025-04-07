@@ -110,12 +110,6 @@ table {
   padding: 1.5rem;
 }
 
-.drawMode {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-}
-
 lib-svg {
   width: 30px;
 }
@@ -156,6 +150,15 @@ lib-svg {
   }
 }
 
+.configBox {
+  display: flex;
+  flex-direction: column;
+  > label {
+    display: block;
+    width: 100%;
+  }
+}
+
 @include LargeDevices {
   .box {
     margin-top: 10vh;
@@ -188,7 +191,9 @@ lib-svg {
   }
 
   .box {
+    max-width: 100vw;
     margin-top: 5vh;
+    padding: 0 3vw;
   }
 
   input {
