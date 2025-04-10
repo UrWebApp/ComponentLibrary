@@ -175,6 +175,7 @@ export class WordupImproveComponent {
       if (confirm('自動抽取開始，若要結束請重複點擊按鈕')) {
         this.record.drawCountRecord = [];
         this.record.finalScoreRecord = [];
+        this.config.drawMode = 'completelyRandom';
         this.automaticDrawCardTimer = setInterval(() => {
           this.drawCard();
         }, this.config.autoDrawSeconds * 1000);
@@ -820,6 +821,8 @@ export class WordupImproveComponent {
         }
       }
 
+      word.count++;
+      card.count++;
       word.updateTime = Date.now();
     } else {
       // 第一次錯直接扣最大分
@@ -828,6 +831,7 @@ export class WordupImproveComponent {
         en: this.card.en.toLowerCase(),
         score: newWord,
         updateTime: Date.now(),
+        count: 1
       });
       card.score = newWord;
     }
@@ -1019,6 +1023,7 @@ export class WordupImproveComponent {
     score: '',
     similarWords: '',
     notFamiliarScore: 0,
+    count: 0
   };
   /**
   * 搜尋相似單字並扣除熟悉度分數
@@ -1057,8 +1062,7 @@ export class WordupImproveComponent {
       const exactPattern = new RegExp(`^${this.searchWord.word}$`, "i"); // 完全匹配
       const loosePattern = new RegExp(`^${this.searchWord.word}-`, "i"); // 允許 - 但優先完全匹配
 
-      let searched = this.cards.find((item) => exactPattern.test(item.en.toLowerCase()))
-        || this.cards.find((item) => loosePattern.test(item.en.toLowerCase()));
+      let searched = this.cards.find((item) => exactPattern.test(item.en.toLowerCase())) || this.cards.find((item) => loosePattern.test(item.en.toLowerCase()));
       if (searched) {
         let word = this.answerScore.find((w: any) =>
           // word.en.toLowerCase().match(pattern)
@@ -1075,12 +1079,16 @@ export class WordupImproveComponent {
             searched.score = this.maxNegativeScore;
           }
           this.searchWord.updateTime = time;
+          word.count++;
+          searched.count++;
+          this.searchWord.count = searched.count;
           word.updateTime = Date.now();
         } else {
           this.answerScore.push({
             en: this.searchWord.word,
             score: (this.maxNegativeScore ?? -50),
             updateTime: Date.now(),
+            count: 1
           });
           this.searchWord.score = (this.maxNegativeScore ?? -50);
           this.searchWord.updateTime = this.calculateTime(undefined);
@@ -2009,6 +2017,7 @@ export class Card {
   updateTime: ElapsedTime = new ElapsedTime();
   sentences: Array<any> = [{ en: '', cn: '' }];
   types: Array<any> = [];
+  count: number = 0;
 }
 
 export class ElapsedTime {

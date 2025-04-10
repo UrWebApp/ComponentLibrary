@@ -48,7 +48,8 @@
       <span>
         {{ card.updateTime.days }} d / {{ card.updateTime.hours }} h /{{ card.updateTime.minutes }} m,
       </span>
-      <span>經過 {{ seconds }} 秒</span>
+      <span>經過 {{ seconds }} 秒,</span>
+      <span>{{card.count}} 次</span>
       <br>
       <span>
         (單)
@@ -136,7 +137,8 @@
           {{errorModeDisplay.notReviewdCount}})
         </p>
         <p class="subInfo userCantSelect">
-          (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7) | number:'1.0-0'}})
+          (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7) |
+          number:'1.0-0'}})
         </p>
         <p class="subInfo userCantSelect">
           <span>Score：{{ card.score }},</span>
@@ -192,8 +194,10 @@
           <span> ,
             {{ searchWord?.updateTime?.days }} d /
             {{ searchWord?.updateTime?.hours }} h /
-            {{ searchWord?.updateTime?.minutes }} m
+            {{ searchWord?.updateTime?.minutes }} m,
           </span>
+
+          <span>{{searchWord.count}}</span>
         </p>
         <hr *ngIf="searchWord?.similarWords" />
         <p>{{ searchWord?.similarWords }}</p>
@@ -396,7 +400,8 @@
       <span class="userCantSelect">搜尋中文相似單字</span>
     </button>
     <p>{{ searchChineseObj.similarWords }}</p>
-    <button (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;addNewCardLock = false;">
+    <button
+      (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;addNewCardLock = false;">
       <span class="userCantSelect">新增新卡片</span>
     </button>
   </div>
@@ -458,6 +463,18 @@
 
       <hr>
 
+
+
+      <details class="configBox">
+        <summary>自動抽卡</summary>
+        <label for="autoDrawSeconds">
+          自動抽取秒數<input id="autoDrawSeconds" type="number" [(ngModel)]="config.autoDrawSeconds" />
+        </label>
+        <button type="button" (click)="automaticDrawCard()">自動抽取</button>
+      </details>
+
+      <hr>
+
       <details class="configBox">
         <summary>抽卡權重設定</summary>
 
@@ -477,7 +494,6 @@
       <hr>
 
       <details class="configBox">
-
         <summary>抽籤模式</summary>
 
         <label for="errorFirst">
@@ -582,9 +598,7 @@
 
       <!-- <label for="autoUpdateLog">自動上傳遠端紀錄</label>
       <input id="autoUpdateLog" type="checkbox" [(ngModel)]="config.autoUpdateLog" /> -->
-      <!-- <label for="autoDrawSeconds">自動抽取秒數</label>
-      <input id="autoDrawSeconds" type="number" [(ngModel)]="config.autoDrawSeconds" /> -->
-      <!-- <button type="button" (click)="automaticDrawCard()">自動抽取</button> -->
+
       <!-- <button class="unobviousBtn" (click)="resetAnswerScore()">清空紀錄</button>
       <button class="unobviousBtn" (click)="clickImExport()">匯出匯入</button>
       <div *ngIf="isExportAnswerScore" style="display: flex; flex-direction: column">
@@ -668,11 +682,13 @@
   </label>
 
   <label for="sentencesCn" *ngIf="addNewCardLock">
-    Sentences CN：<input autocomplete="off" type="text" id="sentencesCn" [(ngModel)]="editedCards.card?.sentences[0].cn" />
+    Sentences CN：<input autocomplete="off" type="text" id="sentencesCn"
+      [(ngModel)]="editedCards.card?.sentences[0].cn" />
   </label>
 
   <label for="sentencesEn" *ngIf="addNewCardLock">
-    Sentences EN：<input autocomplete="off" type="text" id="sentencesEn" [(ngModel)]="editedCards.card?.sentences[0].en" />
+    Sentences EN：<input autocomplete="off" type="text" id="sentencesEn"
+      [(ngModel)]="editedCards.card?.sentences[0].en" />
   </label>
 
   <div>
@@ -699,7 +715,8 @@
 <hr>
 
 <!-- 塞選卡片 -->
-<details class="configBox" [style.display]="(editedCards.displayAddNewCard || firebaseAuth.isEnterRegistPage) ? 'none' : 'flex'">
+<details class="configBox"
+  [style.display]="(editedCards.displayAddNewCard || firebaseAuth.isEnterRegistPage) ? 'none' : 'flex'">
   <summary>分類篩選：({{typesSelectedCount}})</summary>
   <ng-container *ngFor="let type of vocabularyTypes; let i = index">
     <label style="font-size: 1.6rem;">
@@ -724,27 +741,3 @@
     </ng-container>
   </ng-container>
 </details>
-
-
-<!-- 分類篩選：({{typesSelectedCount}})
-  <li *ngFor="let type of vocabularyTypes; let i = index">
-    <label style="font-size: 1.6rem;">
-      <input type="checkbox" [(ngModel)]="type.level1.selected" (change)="calculateTypesFilterCards()">
-      {{ type.level1.cn }}
-    </label>
-    <ng-container *ngIf="type.level1.selected">
-      <ul>
-        <li *ngFor="let lv2 of type.level2; let i = index">
-          <label style="font-size: 1.2rem;">
-            <input type="checkbox" [(ngModel)]="lv2.selected" (change)="calculateTypesFilterCards()">
-            {{ lv2.en }}
-          </label>
-          <ng-container *ngIf="lv2.selected">
-        <li *ngFor="let lv3 of lv2.level3; let i = index">
-          <label style="font-size: 1rem;">
-            <input type="checkbox" [(ngModel)]="lv3.selected" (change)="calculateTypesFilterCards()">
-            {{ lv3.en }}
-          </label>
-        </li>
-    </ng-container>
-  </li> -->
