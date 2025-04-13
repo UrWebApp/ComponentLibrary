@@ -39,4 +39,18 @@ export class CommonService {
   isLoading$ = this.isLoadingSubject.asObservable();
   loadingOn() { this.isLoadingSubject.next(true); }
   loadingOff() { this.isLoadingSubject.next(false); }
+
+  /**
+   * 檢查字串是否為「中文」 包含擴展漢字範圍（例如簡體、繁體混用）
+   */
+  isChineseExtended(str: string): boolean {
+    return /^[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]+$/.test(str);
+  }
+
+  /**
+   * 檢查字串是否為「英文」 允許空格、標點或縮寫
+   */
+  isEnglishFlexible(str: string): boolean {
+    return /^[A-Za-z\s'".,!?-]+$/.test(str);
+  }
 }

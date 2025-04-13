@@ -821,6 +821,11 @@ export class WordupImproveComponent {
         }
       }
 
+      if (word.count == undefined || card.count == undefined) {
+        word.count = 0;
+        card.count = 0;
+      }
+
       word.count++;
       card.count++;
       word.updateTime = Date.now();
@@ -1068,6 +1073,11 @@ export class WordupImproveComponent {
           // word.en.toLowerCase().match(pattern)
           w.en.toLowerCase().match(exactPattern) || w.en.toLowerCase().match(loosePattern)
         );
+
+        if (searched.count == undefined) {
+          searched.count = 0;
+        }
+
         if (word) {
           this.searchWord.score = word?.score;
           this.searchWord.notFamiliarScore = this.notFamiliarScoreCalculations(word);
@@ -1573,7 +1583,11 @@ export class WordupImproveComponent {
     } else {
       if (confirm('確定要新增句子嗎？')) {
         if (!sentences[0]?.en || !sentences[0]?.cn) {
-          alert('請確定更新或新增欄位');
+          alert('請確定句子欄位');
+        } else if (!this.commonService.isChineseExtended(sentences[0]?.cn)) {
+          alert('請確認句子中文');
+        } else if (!this.commonService.isEnglishFlexible(sentences[0]?.en)) {
+          alert('請確認句子英文');
         } else {
           if (tempeditedCard) {
             tempeditedCard.sentences = tempeditedCard.sentences.filter((s: any) => s.en != '');
