@@ -60,6 +60,9 @@ export class GlgorithmsService {
     word = word.toLowerCase();
 
     // 優先處理較長的後綴，避免誤砍
+    if (word.endsWith('able') && word.length > 4) {
+      return word.slice(0, -4);
+    }
     if (word.endsWith('ies') && word.length > 4) {
       return word.slice(0, -3) + 'y'; // flies → fly
     }

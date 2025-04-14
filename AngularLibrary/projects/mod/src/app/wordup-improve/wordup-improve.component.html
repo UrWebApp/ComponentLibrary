@@ -99,13 +99,13 @@
             <details style="width: 50%;">
               <summary class="subInfo userCantSelect" style="cursor: pointer;">英文相似單字</summary>
               <ul *ngFor="let e of this.findSameWordsObj.en; let i = index">
-                <li>{{i}}.[{{e.en}}]{{e.cn}}</li>
+                <li>{{i+1}}.[{{e.en}}]{{e.cn}}</li>
               </ul>
             </details>
             <details style="width: 50%;">
               <summary class="subInfo userCantSelect" style="cursor: pointer;">中文相似單字</summary>
               <ul *ngFor="let c of this.findSameWordsObj.cn; let i = index">
-                <li>{{i}}.[{{c.en}}]{{c.cn}}</li>
+                <li>{{i+1}}.[{{c.en}}]{{c.cn}}</li>
               </ul>
             </details>
           </div>

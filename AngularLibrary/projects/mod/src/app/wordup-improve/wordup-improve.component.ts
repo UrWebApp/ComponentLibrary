@@ -1692,13 +1692,13 @@ export class WordupImproveComponent {
     const findSimilarCards = this.cards.map((c) => {
       // 1. 取得詞組
       const keyPhrases = this.card.cn
-        .filter(cn => !/同義替換|複數/i.test(cn))
+        .filter(cn => !/同義替換|複數|的|地/i.test(cn))
         .flatMap(cn => cn.split(/[，,、\s]+/))
         .filter(Boolean);
 
       // 2. 合併比較字串並去除非中文字
       const compareText = c.cn
-        .filter(cn => !/同義替換|複數/i.test(cn))
+        .filter(cn => !/同義替換|複數|的|地/i.test(cn))
         .join('')
         .replace(/[^\u4e00-\u9fa5]/g, '');
 
