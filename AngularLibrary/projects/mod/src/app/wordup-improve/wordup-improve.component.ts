@@ -1559,7 +1559,15 @@ export class WordupImproveComponent {
       } else {
 
         if (!sentences[0]?.en || !sentences[0]?.cn) {
-          alert('請確定更新或新增欄位')
+          alert('請確定例句欄位')
+        } else if (!this.commonService.isMostlyEnglish(en)) {
+          alert('請確定單字英文');
+        } else if (!sentences[0]?.en || !sentences[0]?.cn) {
+          alert('請確定例句欄位');
+        } else if (!this.commonService.isMostlyChinese(sentences[0]?.cn)) {
+          alert('請確認例句中文');
+        } else if (!this.commonService.isMostlyEnglish(sentences[0]?.en)) {
+          alert('請確認例句英文');
         } else if (!tempCard) {
           this.editedCards.cards.push(this.editedCards.card);
           this.editedCards.date = this.datePipe.transform(new Date(), 'yyyy-MM-dd hh:mm:ss');
@@ -1581,13 +1589,13 @@ export class WordupImproveComponent {
     if (!tempCard) {
       return alert('找不到單字請新增單字');
     } else {
-      if (confirm('確定要新增句子嗎？')) {
+      if (confirm('確定要新增例句嗎？')) {
         if (!sentences[0]?.en || !sentences[0]?.cn) {
-          alert('請確定句子欄位');
-        } else if (!this.commonService.isChineseExtended(sentences[0]?.cn)) {
-          alert('請確認句子中文');
-        } else if (!this.commonService.isEnglishFlexible(sentences[0]?.en)) {
-          alert('請確認句子英文');
+          alert('請確定例句欄位');
+        } else if (!this.commonService.isMostlyChinese(sentences[0]?.cn)) {
+          alert('請確認例句中文');
+        } else if (!this.commonService.isMostlyEnglish(sentences[0]?.en)) {
+          alert('請確認例句英文');
         } else {
           if (tempeditedCard) {
             tempeditedCard.sentences = tempeditedCard.sentences.filter((s: any) => s.en != '');

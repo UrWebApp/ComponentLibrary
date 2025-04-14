@@ -41,16 +41,18 @@ export class CommonService {
   loadingOff() { this.isLoadingSubject.next(false); }
 
   /**
-   * 檢查字串是否為「中文」 包含擴展漢字範圍（例如簡體、繁體混用）
+   * 檢查字串是否為「中文」
    */
-  isChineseExtended(str: string): boolean {
-    return /^[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]+$/.test(str);
+  isMostlyChinese(text: string): boolean {
+    const chineseMatches = text.match(/[\u4e00-\u9fa5]/g) || [];
+    return chineseMatches.length / text.length > 0.5;
   }
 
   /**
-   * 檢查字串是否為「英文」 允許空格、標點或縮寫
+   * 檢查字串是否為「英文」
    */
-  isEnglishFlexible(str: string): boolean {
-    return /^[A-Za-z\s'".,!?-]+$/.test(str);
+  isMostlyEnglish(text: string): boolean {
+    const englishMatches = text.match(/[A-Za-z]/g) || [];
+    return englishMatches.length / text.length > 0.5;
   }
 }
