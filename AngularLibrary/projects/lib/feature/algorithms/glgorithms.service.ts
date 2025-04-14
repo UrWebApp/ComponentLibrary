@@ -14,9 +14,12 @@ export class GlgorithmsService {
    * @returns 兩個字詞之間的相似度（範圍在 0 到 1 之間，1 表示完全相同）
    */
   calculateSimilarity(word1: any, word2: any): number {
+    const normalized1 = this.normalizeWord(word1);
+    const normalized2 = this.normalizeWord(word2);
+
     // 獲取兩個字詞的長度
-    const m = word1?.length;
-    const n = word2?.length;
+    const m = normalized1?.length;
+    const n = normalized2?.length;
     // 創建一個二維數組來存儲編輯距離的計算結果
     const dp = [];
 
@@ -46,6 +49,37 @@ export class GlgorithmsService {
     const maxLen = Math.max(m, n);
     const similarity = 1 - dp[m][n] / maxLen;
     return similarity;
+  }
+
+  /**
+   * 將常見的後綴去除或標準化
+   */
+  normalizeWord(word: string): string {
+    if (!word) return '';
+
+    word = word.toLowerCase();
+
+    // 優先處理較長的後綴，避免誤砍
+    if (word.endsWith('ies') && word.length > 4) {
+      return word.slice(0, -3) + 'y'; // flies → fly
+    }
+    if (word.endsWith('ing') && word.length > 5) {
+      return word.slice(0, -3); // talking → talk
+    }
+    if (word.endsWith('ed') && word.length > 4) {
+      return word.slice(0, -2); // walked → walk
+    }
+    if (word.endsWith('ly') && word.length > 4) {
+      return word.slice(0, -2); // happily → happi (暫定)
+    }
+    if (word.endsWith('es') && word.length > 4) {
+      return word.slice(0, -2); // uses → us
+    }
+    if (word.endsWith('s') && word.length > 3) {
+      return word.slice(0, -1); // cats → cat
+    }
+
+    return word;
   }
 
   /**
