@@ -83,8 +83,7 @@ export class WordupImproveComponent {
     // }
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit() { }
 
   ngOnDestroy() {
     this.combineUserAndLogs$?.unsubscribe();
@@ -650,7 +649,7 @@ export class WordupImproveComponent {
     this.debounceBeSub$?.next([this.speak, speakWords]);
     this.viewIframeImg = false;
 
-    this.findSameWords();
+    this.findSimilarWords();
 
     this.openIframe('https://www.google.com/search?sca_esv=1ddba70af590f790&sca_upv=1&igu=1&q=', '&udm=2&fbs=AEQNm0DVrIRjdA3gRKfJJ-deMT8ZtYOjoIt1NWOMRkEKym4u5PkAZgxJOmIgPx6WieMhF6q1Hq7W6nME2Vp0eHuijF3ZElaTgD0zbj1gkQrti2r6HpgEQJ__FI2P2zVbzOTQnx-xQGuWfPA7_LjHL8X54xCjPigLtLX638JLYGhCvRlpvvGBo-fNpc7q_rU8dgffCadMYeMgxPqmupqDpgcFpVxKo2EBMA&sa=X&ved=2ahUKEwj91ZGlkuCIAxU4cPUHHd29CMAQtKgLegQIEhAB&biw=1920&bih=919&dpr=1');
     // ,' definition'
@@ -1411,33 +1410,28 @@ export class WordupImproveComponent {
       let temp: any = [];
       this.searchChineseObj.similarWords = '找無';
       this.cards.forEach((el: any) => {
-        try {
-          el.cn.forEach((item: string[] | string, index: number, array: (string | string[])[]) => {
-            // 將 item 處理為字串，並進行括號處理
-            let currentItem = Array.isArray(item) ? item.join(',') : item;
+        // el.cn.forEach((item: string[] | string, index: number, array: (string | string[])[]) => {
+        //   // 將 item 處理為字串，並進行括號處理
+        //   let currentItem = Array.isArray(item) ? item.join(',') : item;
 
-            // 替換全形括號為半形括號
-            currentItem = currentItem.replace(/（/g, '(').replace(/）/g, ')');
+        //   // 替換全形括號為半形括號
+        //   currentItem = currentItem.replace(/（/g, '(').replace(/）/g, ')');
 
-            // 如果有不匹配的括號，則移除
-            if (currentItem.includes('(') && !currentItem.includes(')')) {
-              currentItem = currentItem.replace('(', '');
-            } else if (currentItem.includes(')') && !currentItem.includes('(')) {
-              currentItem = currentItem.replace(')', '');
-            }
+        //   // 如果有不匹配的括號，則移除
+        //   if (currentItem.includes('(') && !currentItem.includes(')')) {
+        //     currentItem = currentItem.replace('(', '');
+        //   } else if (currentItem.includes(')') && !currentItem.includes('(')) {
+        //     currentItem = currentItem.replace(')', '');
+        //   }
 
-            // 更新陣列元素
-            array[index] = currentItem;
-          });
+        //   // 更新陣列元素
+        //   array[index] = currentItem;
+        // });
 
-          let cn = el.cn.join(',');
+        let cn = el.cn.join(',');
 
-          if (this.searchChineseObj.word.match(new RegExp(el.cn, 'i')) || cn.match(new RegExp(this.searchChineseObj.word, 'i'))) {
-            temp.push(`[${el.en.toLowerCase()}]${el.cn}`);
-          }
-
-        } catch (e) {
-          console.error(e);
+        if (this.searchChineseObj.word.match(new RegExp(el.cn, 'i')) || cn.match(new RegExp(this.searchChineseObj.word, 'i'))) {
+          temp.push(`[${el.en.toLowerCase()}]${el.cn}`);
         }
       });
 
@@ -1687,44 +1681,99 @@ export class WordupImproveComponent {
     cn: [],
     en: []
   };
-  findSameWords(): any {
+  findSimilarWords() {
 
     this.findSameWordsObj.cn = [];
     this.findSameWordsObj.en = [];
 
-    this.cards.forEach((el: any) => {
-      // CN
-      let cn = this.card.cn.join(',');
-      let cn2 = el.cn.join(',');
-      let calCn = this.glgorithmsService.calculateSimilarity(
-        cn,
-        cn2
-      );
-      this.findSameWordsObj.cn.push({
-        en: el?.en.toLowerCase(),
-        cn: el?.cn,
-        cal: calCn,
-      });
-      // EN
-      let calEn = this.glgorithmsService.calculateSimilarity(
-        el?.en.toLowerCase(),
-        this.card.en
-      );
-      this.findSameWordsObj.en.push({
-        en: el?.en.toLowerCase(),
-        cn: el?.cn,
-        cal: calEn,
-      });
+    const isChinese = (char: string) => /[\u4e00-\u9fa5]/.test(char);
+    const exactPhraseBonus = 5; // 整個詞組命中額外加幾分
+
+    const findSimilarCards = this.cards.map((c) => {
+      // 1. 取得詞組
+      const keyPhrases = this.card.cn
+        .filter(cn => !/同義替換|複數/i.test(cn))
+        .flatMap(cn => cn.split(/[，,、\s]+/))
+        .filter(Boolean);
+
+      // 2. 合併比較字串並去除非中文字
+      const compareText = c.cn
+        .filter(cn => !/同義替換|複數/i.test(cn))
+        .join('')
+        .replace(/[^\u4e00-\u9fa5]/g, '');
+
+      // 3. 計分
+      let cnScore = 0;
+
+      for (const phrase of keyPhrases) {
+        const chars = Array.from(phrase).filter(isChinese);
+
+        // 加：詞組內每個字的出現次數
+        for (const char of chars) {
+          const matches = compareText.match(new RegExp(char, 'g'));
+          if (matches) {
+            cnScore += matches.length;
+          }
+        }
+
+        // 加：整個詞組若有命中，加額外分數
+        if (compareText.includes(phrase)) {
+          cnScore += exactPhraseBonus;
+        }
+      }
+
+      // 英文分數
+      const enScore = this.glgorithmsService.calculateSimilarity(c.en, this.card.en);
+
+      return {
+        en: c?.en?.toLowerCase() || '',
+        cn: c?.cn || [],
+        cnScore,
+        enScore
+      };
     });
 
-    this.findSameWordsObj.cn = this.findSameWordsObj.cn
-      .sort((a: any, b: any) => b.cal - a.cal)
-      .filter((c: any) => c.en.toLowerCase() !== this.card.en.toLowerCase())
-      .slice(0, 10);
-    this.findSameWordsObj.en = this.findSameWordsObj.en
-      .sort((a: any, b: any) => b.cal - a.cal)
-      .filter((c: any) => c.en.toLowerCase() !== this.card.en.toLowerCase())
-      .slice(0, 10);
+
+    this.findSameWordsObj.cn = findSimilarCards
+    .filter(c => c.en !== this.card.en && c.cnScore > 0)
+    .sort((a, b) => b.cnScore - a.cnScore);
+
+    this.findSameWordsObj.en = findSimilarCards
+      .filter((c: any) => c.en.toLowerCase() !== this.card.en.toLowerCase() && c.enScore > 0.4).sort((a, b) => b.enScore - a.enScore);
+
+    // this.cards.forEach((el: any) => {
+    //   // CN
+    //   let cn = this.card.cn.join(',');
+    //   let cn2 = el.cn.join(',');
+    //   let calCn = this.glgorithmsService.calculateSimilarity(
+    //     cn,
+    //     cn2
+    //   );
+    //   this.findSameWordsObj.cn.push({
+    //     en: el?.en.toLowerCase(),
+    //     cn: el?.cn,
+    //     cal: calCn,
+    //   });
+    //   // EN
+    //   let calEn = this.glgorithmsService.calculateSimilarity(
+    //     el?.en.toLowerCase(),
+    //     this.card.en
+    //   );
+    //   this.findSameWordsObj.en.push({
+    //     en: el?.en.toLowerCase(),
+    //     cn: el?.cn,
+    //     cal: calEn,
+    //   });
+    // });
+
+    // this.findSameWordsObj.cn = this.findSameWordsObj.cn
+    //   .sort((a: any, b: any) => b.cal - a.cal)
+    //   .filter((c: any) => c.en.toLowerCase() !== this.card.en.toLowerCase())
+    //   .slice(0, 10);
+    // this.findSameWordsObj.en = this.findSameWordsObj.en
+    //   .sort((a: any, b: any) => b.cal - a.cal)
+    //   .filter((c: any) => c.en.toLowerCase() !== this.card.en.toLowerCase())
+    //   .slice(0, 10);
   }
 
   additionalFeatures(urlFirst: string, urlLast: string = '') {

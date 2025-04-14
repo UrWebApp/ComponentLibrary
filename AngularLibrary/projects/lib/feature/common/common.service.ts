@@ -55,4 +55,11 @@ export class CommonService {
     const englishMatches = text.match(/[A-Za-z]/g) || [];
     return englishMatches.length / text.length > 0.5;
   }
+
+  // 去除所有標點符號（全形 + 半形）
+  removePunctuation(input: string): string {
+    // 包含中英文標點符號的正則
+    const punctuationRegex = /[~`!@#$%^&*()_\-+=\[\]{}|\\:;"'<>,.?/，。、《》「」『』；：？！—…·～﹏、（）【】]/g;
+    return input.replace(punctuationRegex, '');
+  }
 }

@@ -98,14 +98,14 @@
           <div style="display:flex; max-width: 90%;margin: auto;">
             <details style="width: 50%;">
               <summary class="subInfo userCantSelect" style="cursor: pointer;">英文相似單字</summary>
-              <ul *ngFor="let i of this.findSameWordsObj.en">
-                <li>[{{i.en}}]{{i.cn}}</li>
+              <ul *ngFor="let e of this.findSameWordsObj.en; let i = index">
+                <li>{{i}}.[{{e.en}}]{{e.cn}}</li>
               </ul>
             </details>
             <details style="width: 50%;">
               <summary class="subInfo userCantSelect" style="cursor: pointer;">中文相似單字</summary>
-              <ul *ngFor="let i of this.findSameWordsObj.cn">
-                <li>[{{i.en}}]{{i.cn}}</li>
+              <ul *ngFor="let c of this.findSameWordsObj.cn; let i = index">
+                <li>{{i}}.[{{c.en}}]{{c.cn}}</li>
               </ul>
             </details>
           </div>
@@ -489,6 +489,16 @@
         <label for="notReviewdCount">
           每次未答題限數<input id="notReviewdCount" [(ngModel)]="config.notReviewdCount" />
         </label>
+
+        <label for="unfamiliarSortingHours">
+          排序無視時間 (-1 => 無, 0 = 無視 1 小時)<input id="unfamiliarSortingHours" type="number"
+            [(ngModel)]="config.unfamiliarSortingHours" />
+        </label>
+
+        <label for="unfamiliarSortingMinutes">
+          排序無視時間 (-1 => 無, 0 = 無視 1 分鐘)<input id="unfamiliarSortingMinutes" type="number"
+            [(ngModel)]="config.unfamiliarSortingMinutes" />
+        </label>
       </details>
 
       <hr>
@@ -510,21 +520,6 @@
             value="unfamiliarFirst" />
         </label>
 
-      </details>
-
-      <hr>
-
-      <details class="configBox">
-        <summary>鍵盤快捷鍵設定</summary>
-        <label for="unfamiliarSortingHours">
-          排序無視時間 (-1 => 無, 0 = 無視 1 小時)<input id="unfamiliarSortingHours" type="number"
-            [(ngModel)]="config.unfamiliarSortingHours" />
-        </label>
-
-        <label for="unfamiliarSortingMinutes">
-          排序無視時間 (-1 => 無, 0 = 無視 1 分鐘)<input id="unfamiliarSortingMinutes" type="number"
-            [(ngModel)]="config.unfamiliarSortingMinutes" />
-        </label>
       </details>
 
       <hr>
