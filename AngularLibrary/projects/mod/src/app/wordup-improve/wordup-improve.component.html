@@ -95,7 +95,7 @@
             <lib-svg [src]="'./assets/enHelper/edit.svg'"
               (click)="editedCards.notEditMode = !editedCards.notEditMode"></lib-svg>
           </p>
-          <div style="display:flex; max-width: 90%;margin: auto;">
+          <div style="display:flex; max-width: 90vw;margin: auto;">
             <details style="width: 50%;">
               <summary class="subInfo userCantSelect" style="cursor: pointer;">英文相似單字</summary>
               <ul *ngFor="let e of this.findSameWordsObj.en; let i = index">
@@ -393,7 +393,7 @@
     <hr />
   </ng-container> -->
 
-  <div>
+  <div style="max-width: 90vw;">
     <input autocomplete="new-password" type="text" [(ngModel)]="searchChineseObj.word"
       (click)="keyboardControl = false" />
     <button (click)="searchChinese()">
