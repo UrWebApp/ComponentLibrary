@@ -605,6 +605,35 @@
     </div>
   </div>
 
+  <hr>
+
+  <!-- 塞選卡片 -->
+  <details class="configBox"
+    [style.display]="(editedCards.displayAddNewCard || firebaseAuth.isEnterRegistPage) ? 'none' : 'flex'">
+    <summary>分類篩選：({{typesSelectedCount}})</summary>
+    <ng-container *ngFor="let type of vocabularyTypes; let i = index">
+      <label style="font-size: 1.6rem;">
+        <input type="checkbox" [(ngModel)]="type.level1.selected" (change)="calculateTypesFilterCards()">
+        {{ type.level1.cn }}
+      </label>
+      <ng-container *ngIf="type.level1.selected">
+        <ng-container *ngFor="let lv2 of type.level2; let i = index">
+          <label style="font-size: 1.2rem;">
+            <input type="checkbox" [(ngModel)]="lv2.selected" (change)="calculateTypesFilterCards()">
+            {{ lv2.en }}
+          </label>
+          <ng-container *ngIf="lv2.selected">
+            <ng-container *ngFor="let lv3 of lv2.level3; let i = index">
+              <label style="font-size: 1rem;">
+                <input type="checkbox" [(ngModel)]="lv3.selected" (change)="calculateTypesFilterCards()">
+                {{ lv3.en }}
+              </label>
+            </ng-container>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+    </ng-container>
+  </details>
 </div>
 
 <!-- 註冊紀錄資料 -->
@@ -706,33 +735,3 @@
     <span class="userCantSelect">匯出新增卡片 {{editedCards.date}}</span>
   </button>
 </div>
-
-<hr>
-
-<!-- 塞選卡片 -->
-<details class="configBox"
-  [style.display]="(editedCards.displayAddNewCard || firebaseAuth.isEnterRegistPage) ? 'none' : 'flex'">
-  <summary>分類篩選：({{typesSelectedCount}})</summary>
-  <ng-container *ngFor="let type of vocabularyTypes; let i = index">
-    <label style="font-size: 1.6rem;">
-      <input type="checkbox" [(ngModel)]="type.level1.selected" (change)="calculateTypesFilterCards()">
-      {{ type.level1.cn }}
-    </label>
-    <ng-container *ngIf="type.level1.selected">
-      <ng-container *ngFor="let lv2 of type.level2; let i = index">
-        <label style="font-size: 1.2rem;">
-          <input type="checkbox" [(ngModel)]="lv2.selected" (change)="calculateTypesFilterCards()">
-          {{ lv2.en }}
-        </label>
-        <ng-container *ngIf="lv2.selected">
-          <ng-container *ngFor="let lv3 of lv2.level3; let i = index">
-            <label style="font-size: 1rem;">
-              <input type="checkbox" [(ngModel)]="lv3.selected" (change)="calculateTypesFilterCards()">
-              {{ lv3.en }}
-            </label>
-          </ng-container>
-        </ng-container>
-      </ng-container>
-    </ng-container>
-  </ng-container>
-</details>
