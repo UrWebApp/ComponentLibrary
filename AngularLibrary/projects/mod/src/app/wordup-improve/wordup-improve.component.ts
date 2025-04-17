@@ -773,6 +773,7 @@ export class WordupImproveComponent {
     }
 
     this.searchWord = {};
+    this.isEditCardsSentence();
   }
 
   /**
@@ -1048,12 +1049,12 @@ export class WordupImproveComponent {
       this.cards.forEach((el: any) => {
         let cal = this.glgorithmsService.calculateSimilarity(
           el?.en.toLowerCase(),
-          this.searchWord.word
+          this.searchWord.word.trim()
         );
         temp.push({
           en: el?.en.toLowerCase(),
           cn: el?.cn,
-          searchWord: this.searchWord.word,
+          searchWord: this.searchWord.word.trim(),
           cal: cal,
         });
       });
@@ -1063,8 +1064,8 @@ export class WordupImproveComponent {
         .slice(0, 5)
         .map((obj: any) => `[${obj.en.toLowerCase()}]${obj.cn}`)
         .join('，')}`;
-      const exactPattern = new RegExp(`^${this.searchWord.word}$`, "i"); // 完全匹配
-      const loosePattern = new RegExp(`^${this.searchWord.word}-`, "i"); // 允許 - 但優先完全匹配
+      const exactPattern = new RegExp(`^${this.searchWord.word.trim()}$`, "i"); // 完全匹配
+      const loosePattern = new RegExp(`^${this.searchWord.word.trim()}-`, "i"); // 允許 - 但優先完全匹配
 
       let searched = this.cards.find((item) => exactPattern.test(item.en.toLowerCase())) || this.cards.find((item) => loosePattern.test(item.en.toLowerCase()));
       if (searched) {
@@ -1094,7 +1095,7 @@ export class WordupImproveComponent {
           word.updateTime = Date.now();
         } else {
           this.answerScore.push({
-            en: this.searchWord.word,
+            en: this.searchWord.word.trim(),
             score: (this.maxNegativeScore ?? -50),
             updateTime: Date.now(),
             count: 1
@@ -1114,7 +1115,7 @@ export class WordupImproveComponent {
         // alert('已扣 5 分'); todo 彈出自動消失匡
         this.calculateFamiliarity();
         this.calculateAverageNegativeScore();
-        this.searchWord.display = this.searchWord.word;
+        this.searchWord.display = this.searchWord.word.trim();
         this.searchWord.word = '';
       } else {
         // alert(
@@ -1446,7 +1447,7 @@ export class WordupImproveComponent {
 
   editedCards: any = {
     date: '', cards: [], card: new Card(),
-    notEditMode: true, displayAddNewCard: false, displayUpdateCnEdite: false
+    notEditMode: true, notEditSentenceMode: true, displayAddNewCard: false, displayUpdateCnEdite: false
   };
   /**
   * 修改單字資料初始化
@@ -1461,6 +1462,7 @@ export class WordupImproveComponent {
     this.editedCards.displayAddNewCard = false;
     this.editedCards.card = new Card();
     this.editedCards.notEditMode = true;
+    this.editedCards.notEditSentenceMode = true;
     this.refreshEditedCard();
   }
 
@@ -1490,6 +1492,40 @@ export class WordupImproveComponent {
     this.editedCards.card = new Card();
     this.editedCards.displayUpdateCnEdite = false;
     this.refreshEditedCard();
+  }
+
+  tempEditSentenceEn = '';
+  tempEditSentenceCn = '';
+  isEditCardsSentence() {
+    let editCardsSentence = this.editedCards?.cards.find((ec: any) => ec?.sentences?.find((es: any) => es?.en == this.sentence?.en));
+    if (editCardsSentence) {
+      this.tempEditSentenceEn = this.sentence?.en;
+      this.tempEditSentenceCn = this.sentence?.cn;
+    } else {
+      this.tempEditSentenceEn = '';
+      this.tempEditSentenceCn = '';
+    }
+  }
+
+  /**
+  * 編輯英文例句
+  */
+  updateSentenceEdite() {
+    if (confirm('確定更改句子嗎？')) {
+      let editCard = this.editedCards?.cards.find((c: any) => c?.en == this.card?.en);
+      let sentence = editCard.sentences.find((s: any)=>s.en == this.sentence.en);
+      sentence.en = this.tempEditSentenceEn;
+      sentence.cn = this.tempEditSentenceCn;
+      let cardSentence = this.card?.sentences?.find((es: any) => es?.en == this.sentence?.en);
+      cardSentence.en = this.tempEditSentenceEn;
+      cardSentence.cn = this.tempEditSentenceCn;
+
+      let editedCards = JSON.stringify(this.editedCards);
+      localStorage.setItem('editedCards', editedCards);
+      this.editedCards.notEditSentenceMode = !this.editedCards.notEditSentenceMode
+      this.refreshEditedCard();
+      this.isEditCardsSentence();
+    }
   }
 
   /**
@@ -1738,8 +1774,8 @@ export class WordupImproveComponent {
 
 
     this.findSameWordsObj.cn = findSimilarCards
-    .filter(c => c.en !== this.card.en && c.cnScore > 0)
-    .sort((a, b) => b.cnScore - a.cnScore);
+      .filter(c => c.en !== this.card.en && c.cnScore > 0)
+      .sort((a, b) => b.cnScore - a.cnScore);
 
     this.findSameWordsObj.en = findSimilarCards
       .filter((c: any) => c.en.toLowerCase() !== this.card.en.toLowerCase() && c.enScore > 0.4).sort((a, b) => b.enScore - a.enScore);

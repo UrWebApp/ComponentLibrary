@@ -60,23 +60,46 @@
         <span *ngIf="config?.keyboardControl?.speakMsgSentence">({{config.keyboardControl?.speakMsgSentence}})</span>,
       </span>
       <hr />
-      <p [innerHtml]="sentence?.en | highlight : card.en : REGEXP_TYPE.First"></p>
-      <button *ngIf="displayMode !== DisplayMode.Answer && card.sentences.length > 1" (click)="drawSentence()">
+      <p>
+        <ng-container *ngIf="editedCards.notEditSentenceMode else editEnSentenceMode">
+          <span [innerHtml]="sentence?.en | highlight : card.en : REGEXP_TYPE.First"></span>
+        </ng-container>
+        <ng-template #editEnSentenceMode>
+          <input [(ngModel)]="tempEditSentenceEn" />
+          <lib-svg [src]="'./assets/enHelper/ok.svg'" (click)="updateSentenceEdite()"></lib-svg>
+        </ng-template>
+        <lib-svg [src]="'./assets/enHelper/edit.svg'" *ngIf="tempEditSentenceEn != ''"
+          (click)="editedCards.notEditSentenceMode = !editedCards.notEditSentenceMode"></lib-svg>
+      </p>
+      <button
+        *ngIf="editedCards.notEditSentenceMode && (displayMode !== DisplayMode.Answer && card.sentences.length > 1)"
+        (click)="drawSentence()">
         更多例句 ({{ card.sentences.length }})
         <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
       </button>
       <ng-container *ngIf="displayMode === DisplayMode.Answer">
         <p>
           <ng-container *ngIf="sentenceAnswerDisplay">
-            <p [innerHtml]="sentence?.cn"></p>
+
+            <ng-container *ngIf="editedCards.notEditSentenceMode else editCnSentenceMode">
+              <p [innerHtml]="sentence?.cn"></p>
+            </ng-container>
+            <ng-template #editCnSentenceMode>
+              <input [(ngModel)]="tempEditSentenceCn" />
+              <lib-svg [src]="'./assets/enHelper/ok.svg'" (click)="updateSentenceEdite()"></lib-svg>
+            </ng-template>
+            <lib-svg [src]="'./assets/enHelper/edit.svg'" *ngIf="tempEditSentenceCn != ''"
+              (click)="editedCards.notEditSentenceMode = !editedCards.notEditSentenceMode"></lib-svg>
+
           </ng-container>
         </p>
-        <button *ngIf="(displayMode !== DisplayMode.Answer || sentenceAnswerDisplay) && card.sentences.length > 1"
+        <button
+          *ngIf="editedCards.notEditSentenceMode && (displayMode !== DisplayMode.Answer || sentenceAnswerDisplay) && card.sentences.length > 1"
           (click)="drawSentence()">
           更多例句 ({{ card.sentences.length }})
           <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
         </button>
-        <button *ngIf="!sentenceAnswerDisplay" (click)="showExanpleAnswers()">
+        <button *ngIf="editedCards.notEditSentenceMode && !sentenceAnswerDisplay" (click)="showExanpleAnswers()">
           例句答案
           <span
             *ngIf="config?.keyboardControl?.showExanpleAnswers">({{config.keyboardControl?.showExanpleAnswers}})</span>
@@ -145,6 +168,7 @@
           <span>maxNegativeScoreIndex：{{maxNegativeScoreIndex + 1}},</span>
           <span>winningArray:({{errorModeDisplay.winningArray}}),</span>
           <span>recent:({{errorModeDisplay.recent}}),</span>
+          <br>
           <span>remain:({{errorModeDisplay.remain}}),</span>
           <span>notReviewed:({{errorModeDisplay.notReviewed}}),</span>
           <span>maxNegativeScore:({{errorModeDisplay.maxNegativeScore + 1}}),</span>
