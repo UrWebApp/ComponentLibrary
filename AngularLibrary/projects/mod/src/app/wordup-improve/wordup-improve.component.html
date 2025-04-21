@@ -205,15 +205,15 @@
         <p>{{ searchWord?.explain }}</p>
         <p *ngIf="searchWord?.score">
           Score：
-          <ng-container *ngIf="(searchWord?.score - searchWord.notFamiliarScore) > 0">
+          <ng-container *ngIf="(searchWord?.score - searchWord.notFamiliarScore) > 0 else notFamilarScoreDisplay">
             ( {{ searchWord?.score }} - {{ searchWord?.score - searchWord.notFamiliarScore }} )
             = {{searchWord.notFamiliarScore}}
           </ng-container>
 
-          <ng-container *ngIf="(searchWord?.score - searchWord.notFamiliarScore) < 0">
+          <ng-template #notFamilarScoreDisplay>
             ( {{ searchWord?.score - searchWord.notFamiliarScore }} {{searchWord.notFamiliarScore}} )
             = {{ searchWord?.score }}
-          </ng-container>
+          </ng-template>
 
           <span> ,
             {{ searchWord?.updateTime?.days }} d /
@@ -221,8 +221,9 @@
             {{ searchWord?.updateTime?.minutes }} m,
           </span>
 
-          <span>{{searchWord.count}}</span>
+          <span>{{searchWord.count}} 次</span>
         </p>
+        <p>{{searchWord?.types | json}}</p>
         <hr *ngIf="searchWord?.similarWords" />
         <p>{{ searchWord?.similarWords }}</p>
         <!-- <div class="button-container">

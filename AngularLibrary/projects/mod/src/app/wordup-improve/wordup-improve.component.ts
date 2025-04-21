@@ -297,6 +297,7 @@ export class WordupImproveComponent {
       );
       card.score = findAnswer?.score ?? 0;
       card.updateTime = this.calculateTime(findAnswer?.updateTime);
+      card.count = findAnswer?.count ?? 0;
     });
   }
 
@@ -838,6 +839,7 @@ export class WordupImproveComponent {
         updateTime: Date.now(),
         count: 1
       });
+      card.count = 1;
       card.score = newWord;
     }
 
@@ -1028,7 +1030,8 @@ export class WordupImproveComponent {
     score: '',
     similarWords: '',
     notFamiliarScore: 0,
-    count: 0
+    count: 0,
+    types: {}
   };
   /**
   * 搜尋相似單字並扣除熟悉度分數
@@ -1074,12 +1077,9 @@ export class WordupImproveComponent {
           w.en.toLowerCase().match(exactPattern) || w.en.toLowerCase().match(loosePattern)
         );
 
-        if (searched.count == undefined) {
-          searched.count = 0;
-        }
-
         if (word) {
           this.searchWord.score = word?.score;
+          this.searchWord.types = searched?.types;
           this.searchWord.notFamiliarScore = this.notFamiliarScoreCalculations(word);
           const time = this.calculateTime(word?.updateTime);
           word.score += this.searchWord.notFamiliarScore > 0 ? this.searchWord.notFamiliarScore * -1 : this.searchWord.notFamiliarScore;
@@ -1513,7 +1513,7 @@ export class WordupImproveComponent {
   updateSentenceEdite() {
     if (confirm('確定更改句子嗎？')) {
       let editCard = this.editedCards?.cards.find((c: any) => c?.en == this.card?.en);
-      let sentence = editCard.sentences.find((s: any)=>s.en == this.sentence.en);
+      let sentence = editCard.sentences.find((s: any) => s.en == this.sentence.en);
       sentence.en = this.tempEditSentenceEn;
       sentence.cn = this.tempEditSentenceCn;
       let cardSentence = this.card?.sentences?.find((es: any) => es?.en == this.sentence?.en);
@@ -1675,11 +1675,13 @@ export class WordupImproveComponent {
         if (!seenWords.has(en)) {
           seenWords.add(en);
 
-          let newCn = Array.from(new Set(cn.join(",")
-            .replace(/，|；|;/g, ",")
-            .replace(/v:|n:|adj:|adv:|a:|aux:|ad:|prep:|conj:/g, "")
-            .trim()
-            .split(",")));
+          let newCn = JSON.stringify(
+            Array.from(new Set(cn.join(",")
+              .replace(/，|；|;/g, ",")
+              .replace(/v:|n:|adj:|adv:|a:|aux:|ad:|prep:|conj:/g, "")
+              .trim()
+              .split(",")))
+          ).replace(/['"\[\]]/g, '').split(',');
 
           return {
             cn: newCn,
@@ -1725,15 +1727,16 @@ export class WordupImproveComponent {
     const isChinese = (char: string) => /[\u4e00-\u9fa5]/.test(char);
     const exactPhraseBonus = 5; // 整個詞組命中額外加幾分
 
-    const findSimilarCards = this.cards.map((c) => {
+    const findSimilarCards = this.cards?.map((c) => {
       // 1. 取得詞組
-      const keyPhrases = this.card.cn
+      const keyPhrases = this.card?.cn
         .filter(cn => !/同義替換|複數/i.test(cn))
-        .flatMap(cn => cn.split(/[，,、\s]+/))
+        .map(cn => JSON.stringify(cn).replace(/['"\[\]]/g, ''))
+        .flatMap(cn => cn?.split(/[，,、\s]+/))
         .filter(Boolean);
 
       // 2. 合併比較字串並去除非中文字
-      const compareText = c.cn
+      const compareText = c?.cn
         .filter(cn => !/同義替換|複數/i.test(cn))
         .join('')
         .replace(/[^\u4e00-\u9fa5]/g, '');
@@ -1749,20 +1752,20 @@ export class WordupImproveComponent {
 
           if ((char === '的' || char === '地') && /[的地]$/.test(phrase)) continue;
 
-          const matches = compareText.match(new RegExp(char, 'g'));
+          const matches = compareText?.match(new RegExp(char, 'g'));
           if (matches) {
-            cnScore += matches.length;
+            cnScore += matches?.length;
           }
         }
 
         // 加：整個詞組若有命中，加額外分數
-        if (compareText.includes(phrase)) {
+        if (compareText?.includes(phrase)) {
           cnScore += exactPhraseBonus;
         }
       }
 
       // 英文分數
-      const enScore = this.glgorithmsService.calculateSimilarity(c.en, this.card.en);
+      const enScore = this.glgorithmsService?.calculateSimilarity(c?.en, this.card?.en);
 
       return {
         en: c?.en?.toLowerCase() || '',
@@ -1774,11 +1777,11 @@ export class WordupImproveComponent {
 
 
     this.findSameWordsObj.cn = findSimilarCards
-      .filter(c => c.en !== this.card.en && c.cnScore > 0)
-      .sort((a, b) => b.cnScore - a.cnScore);
+      .filter(c => c?.en !== this.card?.en && c?.cnScore > 0)
+      .sort((a, b) => b?.cnScore - a?.cnScore);
 
     this.findSameWordsObj.en = findSimilarCards
-      .filter((c: any) => c.en.toLowerCase() !== this.card.en.toLowerCase() && c.enScore > 0.4).sort((a, b) => b.enScore - a.enScore);
+      .filter((c: any) => c?.en?.toLowerCase() !== this.card?.en?.toLowerCase() && c?.enScore > 0.4).sort((a, b) => b?.enScore - a?.enScore);
 
     // this.cards.forEach((el: any) => {
     //   // CN
