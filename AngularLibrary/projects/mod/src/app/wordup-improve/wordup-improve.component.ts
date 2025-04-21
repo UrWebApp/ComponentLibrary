@@ -252,7 +252,9 @@ export class WordupImproveComponent {
   }
 
   answerScoreAverage = 0;
+  tempAnswerScoreAverage = 0;
   maxNegativeScore = 0;
+  tempMaxNegativeScore = 0;
   maxNegativeScoreIndex = 0;
   errorModeDisplay: any = {};
 
@@ -267,13 +269,19 @@ export class WordupImproveComponent {
 
     // this.cardslinkScore();
 
-    let tempCards: Card[] = this.typesFilterCards.length > 0 ? this.typesFilterCards : this.cards;
-
-    const negativeScores = tempCards?.filter((item: any) => item.score < 0);
+    const negativeScores = this.cards?.filter((item: any) => item.score < 0);
     if (negativeScores.length > 0) {
       const sum = negativeScores.reduce((total: number, item: any) => total + item.score, 0);
       this.answerScoreAverage = Math.floor(sum / negativeScores.length);
       this.maxNegativeScore = Math.round(Math.min(...negativeScores.map((item: any) => item.score)));
+    }
+
+    let tempCards: Card[] = this.typesFilterCards.length > 0 ? this.typesFilterCards : this.cards;
+    const tempNegativeScores = tempCards?.filter((item: any) => item.score < 0);
+    if (tempNegativeScores.length > 0) {
+      const sum = tempNegativeScores.reduce((total: number, item: any) => total + item.score, 0);
+      this.tempAnswerScoreAverage = Math.floor(sum / tempNegativeScores.length);
+      this.tempMaxNegativeScore = Math.round(Math.min(...tempNegativeScores.map((item: any) => item.score)));
     }
 
     // 計算每種分數數量
@@ -390,7 +398,7 @@ export class WordupImproveComponent {
           acc.notReviewed.push(card);
         } else if (days === 0 && hours < (this.config?.unfamiliarSortingHours ?? 7)) {// 小於 1 小時不抽出
           acc.recent.push(card);
-        } else if (card.score == this.maxNegativeScore) { // 扣最多分的
+        } else if (card.score == this.tempMaxNegativeScore) { // 扣最多分的
           acc.maxNegativeScore.push(card);
         } else if (days > 0 && days <= 1) { // 最近 1 天內的
           acc.within1d.push(card);
@@ -819,9 +827,9 @@ export class WordupImproveComponent {
       } else {
         word.score += this.notFamiliarScore;
         card.score += this.notFamiliarScore;
-        if (this.maxNegativeScore < -50 || word.score < this.maxNegativeScore || this.card.updateTime.days > 7) {
-          word.score = this.maxNegativeScore;
-          card.score = this.maxNegativeScore;
+        if (this.tempMaxNegativeScore < -50 || word.score < this.tempMaxNegativeScore || this.card.updateTime.days > 7) {
+          word.score = this.tempMaxNegativeScore;
+          card.score = this.tempMaxNegativeScore;
         }
       }
 
@@ -869,7 +877,7 @@ export class WordupImproveComponent {
       falseScore = this.maxNegativeScore ?? -50;
     } else {
       const day = Math.min(falseScoreTime?.days ?? 0, 7);
-      falseScore = (this.glgorithmsService.mapScore(day, 7, 20, this.maxNegativeScore * -1)) * -1;
+      falseScore = (this.glgorithmsService.mapScore(day, 7, 20, this.tempMaxNegativeScore * -1)) * -1;
     }
 
     return falseScore;
@@ -1087,9 +1095,9 @@ export class WordupImproveComponent {
           const time = this.calculateTime(word?.updateTime);
           word.score += this.searchWord.notFamiliarScore > 0 ? this.searchWord.notFamiliarScore * -1 : this.searchWord.notFamiliarScore;
           searched.score += this.searchWord.notFamiliarScore > 0 ? this.searchWord.notFamiliarScore * -1 : this.searchWord.notFamiliarScore;
-          if (this.maxNegativeScore < -50 || word.score < this.maxNegativeScore || this.card.updateTime.days > 7) {
-            word.score = this.maxNegativeScore;
-            searched.score = this.maxNegativeScore;
+          if (this.tempMaxNegativeScore < -50 || word.score < this.tempMaxNegativeScore || this.card.updateTime.days > 7) {
+            word.score = this.tempMaxNegativeScore;
+            searched.score = this.tempMaxNegativeScore;
           }
           this.searchWord.updateTime = time;
           word.count++;

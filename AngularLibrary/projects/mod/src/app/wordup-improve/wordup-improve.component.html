@@ -160,7 +160,10 @@
           {{errorModeDisplay.notReviewdCount}})
         </p>
         <p class="subInfo userCantSelect">
-          (平均 {{ answerScoreAverage }} / 最大 {{ maxNegativeScore }}) / 錯誤分數
+          全卡 (平均 {{ answerScoreAverage }} / 最大 {{ maxNegativeScore }}) / 錯誤分數
+        </p>
+        <p class="subInfo userCantSelect">
+          (平均 {{ tempAnswerScoreAverage }} / 最大 {{ tempMaxNegativeScore }}) / 錯誤分數
         </p>
         <p class="subInfo userCantSelect">
           ({{maxNegativeScore * (6 / 7) | number:'1.0-0'}}) maxNegativeScore 6/7
