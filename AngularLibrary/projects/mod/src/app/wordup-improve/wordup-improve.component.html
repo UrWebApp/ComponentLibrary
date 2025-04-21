@@ -143,7 +143,7 @@
 
       <div style="width:90vw" *ngIf="trackingInfoSwitch">
 
-        <p>
+        <p class="subInfo userCantSelect">
           <ng-container *ngIf="card.types.length > 0">{{card.types | json}}</ng-container>
           <ng-container *ngIf="card.types.length <= 0">other</ng-container>
         </p>
@@ -160,24 +160,27 @@
           {{errorModeDisplay.notReviewdCount}})
         </p>
         <p class="subInfo userCantSelect">
-          (平均 {{ answerScoreAverage }} /最大 {{ maxNegativeScore }} ) 錯誤分數 ({{maxNegativeScore * (6 / 7) |
-          number:'1.0-0'}})
+          (平均 {{ answerScoreAverage }} / 最大 {{ maxNegativeScore }}) / 錯誤分數
         </p>
         <p class="subInfo userCantSelect">
-          <span>Score：{{ card.score }},</span>
-          <span>maxNegativeScoreIndex：{{maxNegativeScoreIndex + 1}},</span>
-          <span>winningArray:({{errorModeDisplay.winningArray}}),</span>
-          <span>recent:({{errorModeDisplay.recent}}),</span>
+          ({{maxNegativeScore * (6 / 7) | number:'1.0-0'}}) maxNegativeScore 6/7
+        </p>
+        <p class="subInfo userCantSelect">
+          <span>Score：{{ card.score }}, </span>
+          <span>maxNegativeScoreIndex：{{maxNegativeScoreIndex + 1}}, </span>
           <br>
-          <span>remain:({{errorModeDisplay.remain}}),</span>
-          <span>notReviewed:({{errorModeDisplay.notReviewed}}),</span>
-          <span>maxNegativeScore:({{errorModeDisplay.maxNegativeScore + 1}}),</span>
-          <span>positive:({{errorModeDisplay.positive}})</span>
+          <span>winningArray:({{errorModeDisplay.winningArray}}), </span>
+          <span>recent:({{errorModeDisplay.recent}}), </span>
           <br>
-          <span>within1d:({{errorModeDisplay.within1d}})</span>
-          <span>within2d:({{errorModeDisplay.within2d}})</span>
-          <span>within7d:({{errorModeDisplay.within7d}})</span>
-          <span>within14d:({{errorModeDisplay.within14d}})</span>
+          <span>remain:({{errorModeDisplay.remain}}), </span>
+          <span>notReviewed:({{errorModeDisplay.notReviewed}}), </span>
+          <span>maxNegativeScore:({{errorModeDisplay.maxNegativeScore + 1}}), </span>
+          <span>positive:({{errorModeDisplay.positive}}), </span>
+          <br>
+          <span>within1d:({{errorModeDisplay.within1d}}), </span>
+          <span>within2d:({{errorModeDisplay.within2d}}), </span>
+          <span>within7d:({{errorModeDisplay.within7d}}), </span>
+          <span>within14d:({{errorModeDisplay.within14d}}) </span>
         </p>
       </div>
 

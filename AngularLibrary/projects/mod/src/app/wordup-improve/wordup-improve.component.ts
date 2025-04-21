@@ -266,7 +266,10 @@ export class WordupImproveComponent {
     // this.answerScoreAverage = Math.floor(sum / negativeScores?.length);
 
     // this.cardslinkScore();
-    const negativeScores = this.cards?.filter((item: any) => item.score < 0);
+
+    let tempCards: Card[] = this.typesFilterCards.length > 0 ? this.typesFilterCards : this.cards;
+
+    const negativeScores = tempCards?.filter((item: any) => item.score < 0);
     if (negativeScores.length > 0) {
       const sum = negativeScores.reduce((total: number, item: any) => total + item.score, 0);
       this.answerScoreAverage = Math.floor(sum / negativeScores.length);
@@ -1065,8 +1068,8 @@ export class WordupImproveComponent {
       let sortTemp = temp.sort((a: any, b: any) => b.cal - a.cal);
       this.searchWord.similarWords = `相似單字：${sortTemp
         .slice(0, 5)
-        .map((obj: any) => `[${obj.en.toLowerCase()}]${obj.cn}`)
-        .join('，')}`;
+        .map((obj: any) => `[${obj.en.toLowerCase()}] ${obj.cn}`)
+        .join('、')}`;
       const exactPattern = new RegExp(`^${this.searchWord.word.trim()}$`, "i"); // 完全匹配
       const loosePattern = new RegExp(`^${this.searchWord.word.trim()}-`, "i"); // 允許 - 但優先完全匹配
 
@@ -1432,7 +1435,7 @@ export class WordupImproveComponent {
         let cn = el.cn.join(',');
 
         if (this.searchChineseObj.word.match(new RegExp(el.cn, 'i')) || cn.match(new RegExp(this.searchChineseObj.word, 'i'))) {
-          temp.push(`[${el.en.toLowerCase()}]${el.cn}`);
+          temp.push(`[${el.en.toLowerCase()}] ${el.cn}`);
         }
       });
 
