@@ -36,7 +36,7 @@
           <ng-container *ngSwitchCase="'recent'">最近的:({{errorModeDisplay.recent}})</ng-container>
           <ng-container *ngSwitchCase="'remain'">remain:({{errorModeDisplay.remain}})</ng-container>
           <ng-container *ngSwitchCase="'notReviewed'">未審閱:({{errorModeDisplay.notReviewed}})</ng-container>
-          <ng-container *ngSwitchCase="'maxNegativeScore'">最大負分:({{errorModeDisplay.maxNegativeScore+1}})
+          <ng-container *ngSwitchCase="'tempMaxNegativeScore'">最大負分:({{errorModeDisplay.tempMaxNegativeScore+1}})
           </ng-container>
           <ng-container *ngSwitchCase="'positive'">positive:({{errorModeDisplay.positive}})</ng-container>
           <ng-container *ngSwitchCase="'within1d'">within1d:({{errorModeDisplay.within1d}})</ng-container>
@@ -73,7 +73,7 @@
       </p>
       <button
         *ngIf="editedCards.notEditSentenceMode && (displayMode !== DisplayMode.Answer && card.sentences.length > 1)"
-        (click)="drawSentence()">
+        (click)="drawSentence();debounceBeSub$?.next([this.speak, sentence.en]);">
         更多例句 ({{ card.sentences.length }})
         <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
       </button>
@@ -95,7 +95,7 @@
         </p>
         <button
           *ngIf="editedCards.notEditSentenceMode && (displayMode !== DisplayMode.Answer || sentenceAnswerDisplay) && card.sentences.length > 1"
-          (click)="drawSentence()">
+          (click)="drawSentence();debounceBeSub$?.next([this.speak, sentence.en]);">
           更多例句 ({{ card.sentences.length }})
           <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
         </button>
@@ -177,7 +177,7 @@
           <br>
           <span>remain:({{errorModeDisplay.remain}}), </span>
           <span>notReviewed:({{errorModeDisplay.notReviewed}}), </span>
-          <span>maxNegativeScore:({{errorModeDisplay.maxNegativeScore + 1}}), </span>
+          <span>maxNegativeScore:({{errorModeDisplay.tempMaxNegativeScore + 1}}), </span>
           <span>positive:({{errorModeDisplay.positive}}), </span>
           <br>
           <span>within1d:({{errorModeDisplay.within1d}}), </span>
@@ -760,7 +760,10 @@
       <span class="userCantSelect">取消</span>
     </button>
   </div>
-  <p>新卡片數量：{{editedCards.cards?.length}}</p>
+  <details>
+    <summary>新卡片數量：{{editedCards.cards?.length}}</summary>
+    <p>{{editedCards.cards|json}}</p>
+  </details>
   <hr>
   <button (click)="exportNewCards()">
     <span class="userCantSelect">匯出新增卡片 {{editedCards.date}}</span>

@@ -384,7 +384,7 @@ export class WordupImproveComponent {
       // this.cards = randomArray.concat();
 
       const preprocessCards = tempCards.reduce((acc: {
-        positive: Card[]; recent: Card[]; remain: Card[]; notReviewed: Card[]; maxNegativeScore: Card[];
+        positive: Card[]; recent: Card[]; remain: Card[]; notReviewed: Card[]; tempMaxNegativeScore: Card[];
         within1d: Card[]; within2d: Card[]; within7d: Card[]; within14d: Card[];
       }, card) => {
         let days = card.updateTime.days;
@@ -399,7 +399,7 @@ export class WordupImproveComponent {
         } else if (days === 0 && hours < (this.config?.unfamiliarSortingHours ?? 7)) {// 小於 1 小時不抽出
           acc.recent.push(card);
         } else if (card.score == this.tempMaxNegativeScore) { // 扣最多分的
-          acc.maxNegativeScore.push(card);
+          acc.tempMaxNegativeScore.push(card);
         } else if (days > 0 && days <= 1) { // 最近 1 天內的
           acc.within1d.push(card);
         } else if (days > 0 && days <= 2) { // 最近 2 天內的
@@ -414,7 +414,7 @@ export class WordupImproveComponent {
 
         return acc;
       }, {
-        recent: [], remain: [], notReviewed: [], maxNegativeScore: [],
+        recent: [], remain: [], notReviewed: [], tempMaxNegativeScore: [],
         within1d: [], within2d: [], within7d: [], within14d: [],
         positive: []
       });
@@ -422,12 +422,14 @@ export class WordupImproveComponent {
       this.errorModeDisplay.recent = preprocessCards.recent.length;
       this.errorModeDisplay.remain = preprocessCards.remain.length;
       this.errorModeDisplay.notReviewed = preprocessCards.notReviewed.length;
-      this.errorModeDisplay.maxNegativeScore = preprocessCards.maxNegativeScore.length;
+      this.errorModeDisplay.tempMaxNegativeScore = preprocessCards.tempMaxNegativeScore.length;
       this.errorModeDisplay.within1d = preprocessCards.within1d.length;
       this.errorModeDisplay.within2d = preprocessCards.within2d.length;
       this.errorModeDisplay.within7d = preprocessCards.within7d.length;
       this.errorModeDisplay.within14d = preprocessCards.within14d.length;
       this.errorModeDisplay.positive = preprocessCards.positive.length;
+
+      console.log(preprocessCards)
 
       // 先背最多扣分的，如果都跑進一小時內，沒了就接續最近七天的，七天的都進一小時內，換最近三十天的跟新的抽
 
@@ -438,17 +440,17 @@ export class WordupImproveComponent {
         tempCards = preprocessCards.notReviewed
           .concat(preprocessCards.recent)
           .concat(preprocessCards.remain)
-          .concat(preprocessCards.maxNegativeScore)
+          .concat(preprocessCards.tempMaxNegativeScore)
           .concat(preprocessCards.within1d)
           .concat(preprocessCards.within2d)
           .concat(preprocessCards.within7d)
           .concat(preprocessCards.within14d)
           .concat(preprocessCards.positive)
       } else {
-        if (preprocessCards.maxNegativeScore.length != 0) {
-          this.errorModeDisplay.winningArray = 'maxNegativeScore';
-          if (preprocessCards.maxNegativeScore.length > 30) {
-            preprocessCards.maxNegativeScore.sort((a, b) => {
+        if (preprocessCards.tempMaxNegativeScore.length != 0) {
+          this.errorModeDisplay.winningArray = 'tempMaxNegativeScore';
+          if (preprocessCards.tempMaxNegativeScore.length > 30) {
+            preprocessCards.tempMaxNegativeScore.sort((a, b) => {
               if (a.updateTime.days == b.updateTime.days) {
                 return b.updateTime.hours - a.updateTime.hours
               } else {
@@ -456,10 +458,10 @@ export class WordupImproveComponent {
               }
             });
           } else {
-            preprocessCards.maxNegativeScore.sort((a, b) => b.updateTime.days - a.updateTime.days);
+            preprocessCards.tempMaxNegativeScore.sort((a, b) => b.updateTime.days - a.updateTime.days);
           }
 
-          tempCards = preprocessCards.maxNegativeScore
+          tempCards = preprocessCards.tempMaxNegativeScore
             .concat(preprocessCards.recent)
             .concat(preprocessCards.remain)
             .concat(preprocessCards.notReviewed)
@@ -475,7 +477,7 @@ export class WordupImproveComponent {
             tempCards = preprocessCards.within7d
               .concat(preprocessCards.recent)
               .concat(preprocessCards.remain)
-              .concat(preprocessCards.maxNegativeScore)
+              .concat(preprocessCards.tempMaxNegativeScore)
               .concat(preprocessCards.notReviewed)
               .concat(preprocessCards.within2d)
               .concat(preprocessCards.within1d)
@@ -488,7 +490,7 @@ export class WordupImproveComponent {
               tempCards = preprocessCards.within14d
                 .concat(preprocessCards.recent)
                 .concat(preprocessCards.remain)
-                .concat(preprocessCards.maxNegativeScore)
+                .concat(preprocessCards.tempMaxNegativeScore)
                 .concat(preprocessCards.notReviewed)
                 .concat(preprocessCards.within1d)
                 .concat(preprocessCards.within2d)
@@ -501,7 +503,7 @@ export class WordupImproveComponent {
                 tempCards = preprocessCards.remain
                   .concat(preprocessCards.recent)
                   .concat(preprocessCards.within2d)
-                  .concat(preprocessCards.maxNegativeScore)
+                  .concat(preprocessCards.tempMaxNegativeScore)
                   .concat(preprocessCards.notReviewed)
                   .concat(preprocessCards.within1d)
                   .concat(preprocessCards.within7d)
@@ -514,7 +516,7 @@ export class WordupImproveComponent {
                   tempCards = preprocessCards.notReviewed
                     .concat(preprocessCards.recent)
                     .concat(preprocessCards.remain)
-                    .concat(preprocessCards.maxNegativeScore)
+                    .concat(preprocessCards.tempMaxNegativeScore)
                     .concat(preprocessCards.within1d)
                     .concat(preprocessCards.within2d)
                     .concat(preprocessCards.within7d)
