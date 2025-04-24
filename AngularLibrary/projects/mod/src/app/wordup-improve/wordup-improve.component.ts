@@ -790,6 +790,12 @@ export class WordupImproveComponent {
     this.isEditCardsSentence();
   }
 
+  moreSentence(){
+    this.drawSentence();
+    let speakWords = this.config.seeAnswerSpeak ? this.sentence.en : this.card.en;
+    this.debounceBeSub$?.next([this.speak, speakWords]);
+  }
+
   /**
   * 用於 Loading 裝飾會卡住的地方，delay 一旦拿掉就會造成 loadingOn 與 loadingOff 幾乎黏再一起
   */

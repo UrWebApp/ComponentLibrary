@@ -5,6 +5,6 @@
   </div>
 </div>
 
-<div [hidden]="commonService.isLoading$ | async">
+<div [class.grey-out]="!isWindowFocused" [hidden]="commonService.isLoading$ | async">
   <router-outlet></router-outlet>
 </div>

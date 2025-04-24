@@ -14,3 +14,16 @@
     transform: rotate(0deg);
   }
 }
+
+.grey-out {
+  color: gray;
+  opacity: 0.3;
+  pointer-events: none; /* 停用所有互動元件 */
+  user-select: none;
+
+  *>button {
+    border-color: #ffffff;
+    color: gray;
+    opacity: 0.6;
+  }
+}

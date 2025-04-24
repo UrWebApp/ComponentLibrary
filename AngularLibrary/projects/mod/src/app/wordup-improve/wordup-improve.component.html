@@ -7,6 +7,7 @@
   (click)="editedCards.displayAddNewCard = !editedCards.displayAddNewCard;keyboardControl = false;addNewCardLock = false;">新</button>
 <button class="quickBtn BT" (click)="commonService.goToAnchor(backToTopDOM)">🔝</button>
 
+
 <!-- 主要介面 -->
 <div class="box" [style.display]="(editedCards.displayAddNewCard || firebaseAuth.isEnterRegistPage) ? 'none' : 'flex'"
   (window:resize)="onResize($event)" #backToTop>
@@ -73,7 +74,7 @@
       </p>
       <button
         *ngIf="editedCards.notEditSentenceMode && (displayMode !== DisplayMode.Answer && card.sentences.length > 1)"
-        (click)="drawSentence();debounceBeSub$?.next([this.speak, sentence.en]);">
+        (click)="moreSentence()">
         更多例句 ({{ card.sentences.length }})
         <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
       </button>
@@ -95,7 +96,7 @@
         </p>
         <button
           *ngIf="editedCards.notEditSentenceMode && (displayMode !== DisplayMode.Answer || sentenceAnswerDisplay) && card.sentences.length > 1"
-          (click)="drawSentence();debounceBeSub$?.next([this.speak, sentence.en]);">
+          (click)="moreSentence()">
           更多例句 ({{ card.sentences.length }})
           <span *ngIf="config?.keyboardControl?.drawSentence">({{config.keyboardControl?.drawSentence}})</span>
         </button>

@@ -154,7 +154,8 @@ lib-svg {
 .configBox {
   display: flex;
   flex-direction: column;
-  > label {
+
+  >label {
     display: block;
     width: 100%;
   }

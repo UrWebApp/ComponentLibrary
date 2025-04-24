@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { ServiceWorkerService } from 'lib/feature';
 import { CommonService } from 'lib/feature/common/common.service';
 
@@ -12,4 +12,15 @@ export class AppComponent {
   constructor(
     public commonService: CommonService
   ) {}
+
+    isWindowFocused = true;
+    @HostListener('window:blur', [])
+    onWindowBlur() {
+      this.isWindowFocused = false;
+    }
+
+    @HostListener('window:focus', [])
+    onWindowFocus() {
+      this.isWindowFocused = true;
+    }
 }
